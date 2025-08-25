@@ -1,0 +1,32 @@
+# docker-compose.yml - упрощенная версия для отладки
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: hr_postgres
+    environment:
+      # Эти переменные создадут пользователя и БД автоматически
+      POSTGRES_USER: hruser
+      POSTGRES_PASSWORD: hrpassword
+      POSTGRES_DB: hrdb
+      # Разрешаем подключения без пароля для отладки
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Команда для создания БД при старте
+    command: >
+      postgres -c log_statement='all' 
+               -c log_connections=on 
+               -c log_disconnections=on
+    healthcheck:
+      # Правильная проверка - указываем базу hrdb
+      test: ["CMD-SHELL", "pg_isready -U hruser -d hrdb || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

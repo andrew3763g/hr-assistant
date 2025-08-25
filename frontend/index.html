@@ -1,0 +1,540 @@
+<!-- frontend/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR AI Assistant - Интервью</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.interviewer {
+            justify-content: flex-start;
+        }
+
+        .message.candidate {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .interviewer .message-content {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .candidate .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+        }
+
+        #sendBtn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #sendBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #sendBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .setup-container {
+            padding: 30px;
+            background: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #667eea;
+        }
+
+        #startBtn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #startBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .status {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        .complete-message {
+            padding: 20px;
+            background: #4caf50;
+            color: white;
+            text-align: center;
+            font-size: 18px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 10px;
+            margin: 10px 20px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 HR AI Assistant</h1>
+            <p>Интеллектуальная система проведения интервью</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div id="setupScreen">
+            <div class="setup-container">
+                <h2 style="margin-bottom: 20px; color: #333;">Начать интервью</h2>
+
+                <div class="form-group">
+                    <label for="candidateName">Ваше имя</label>
+                    <input type="text" id="candidateName" placeholder="Иван Иванов" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="candidateEmail">Email</label>
+                    <input type="email" id="candidateEmail" placeholder="ivan@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="position">Позиция</label>
+                    <select id="position">
+                        <option value="Frontend Developer">Frontend Developer</option>
+                        <option value="Backend Developer">Backend Developer</option>
+                        <option value="Fullstack Developer">Fullstack Developer</option>
+                        <option value="UI/UX Designer">UI/UX Designer</option>
+                        <option value="Product Manager">Product Manager</option>
+                        <option value="DevOps Engineer">DevOps Engineer</option>
+                        <option value="Data Scientist">Data Scientist</option>
+                    </select>
+                </div>
+
+                <button id="startBtn" onclick="startInterview()">Начать интервью</button>
+            </div>
+        </div>
+
+        <div id="chatScreen" style="display: none;">
+            <div class="status">
+                <span id="statusText">Интервью началось</span>
+            </div>
+
+            <div class="chat-container" id="chatContainer">
+                <!-- Сообщения будут добавляться сюда -->
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="complete-message" id="completeMessage">
+                ✅ Интервью завершено! Спасибо за участие.
+            </div>
+
+            <div class="input-container" id="inputContainer">
+                <div class="input-group">
+                    <input type="text" id="messageInput" placeholder="Введите ваш ответ..."
+                           onkeypress="if(event.key === 'Enter' && !event.shiftKey) sendMessage()">
+                    <button id="sendBtn" onclick="sendMessage()">Отправить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';  // Используем относительный путь для nginx proxy
+        let currentInterviewId = null;
+        let isInterviewComplete = false;
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+
+        async function startInterview() {
+            const name = document.getElementById('candidateName').value.trim();
+            const email = document.getElementById('candidateEmail').value.trim();
+            const position = document.getElementById('position').value;
+
+            if (!name || !email) {
+                showError('Пожалуйста, заполните все поля');
+                return;
+            }
+
+            // Валидация email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('Пожалуйста, введите корректный email');
+                return;
+            }
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').textContent = 'Подготовка...';
+
+            try {
+                // Создаем кандидата
+                const candidateResponse = await fetch(`${API_URL}/candidates/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        first_name: name.split(' ')[0],
+                        last_name: name.split(' ')[1] || '',
+                        phone: ''
+                    })
+                });
+
+                if (!candidateResponse.ok) {
+                    throw new Error('Ошибка создания кандидата');
+                }
+
+                const candidate = await candidateResponse.json();
+                console.log('Candidate created:', candidate);
+
+                // Создаем вакансию
+                const vacancyResponse = await fetch(`${API_URL}/vacancies/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: position,
+                        level: 'Middle',
+                        description: `Позиция ${position} в нашей компании`,
+                        requirements: ['Опыт от 2 лет', 'Английский B1+', 'Командная работа'],
+                        skills: position.includes('Frontend')
+                            ? ['JavaScript', 'React', 'CSS', 'HTML']
+                            : position.includes('Backend')
+                            ? ['Python', 'FastAPI', 'PostgreSQL', 'Docker']
+                            : ['JavaScript', 'Python', 'SQL', 'Git']
+                    })
+                });
+
+                if (!vacancyResponse.ok) {
+                    throw new Error('Ошибка создания вакансии');
+                }
+
+                const vacancy = await vacancyResponse.json();
+                console.log('Vacancy created:', vacancy);
+
+                // Создаем интервью
+                const interviewResponse = await fetch(`${API_URL}/interviews/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        candidate_id: candidate.id,
+                        vacancy_id: vacancy.id,
+                        type: 'screening'
+                    })
+                });
+
+                if (!interviewResponse.ok) {
+                    throw new Error('Ошибка создания интервью');
+                }
+
+                const interview = await interviewResponse.json();
+                currentInterviewId = interview.id;
+                console.log('Interview created:', interview);
+
+                // Переключаем экраны
+                document.getElementById('setupScreen').style.display = 'none';
+                document.getElementById('chatScreen').style.display = 'block';
+
+                // Добавляем приветственное сообщение
+                addMessage('interviewer', `Здравствуйте, ${name}! Я AI-ассистент и проведу с вами первичное интервью на позицию ${position}. Это займет около 10-15 минут. Готовы начать? Расскажите немного о себе и вашем опыте.`);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Произошла ошибка при создании интервью. Проверьте, что сервер запущен.');
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('startBtn').textContent = 'Начать интервью';
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || isInterviewComplete) return;
+
+            // Добавляем сообщение кандидата
+            addMessage('candidate', message);
+            input.value = '';
+
+            // Показываем индикатор набора
+            document.getElementById('typingIndicator').classList.add('active');
+            document.getElementById('sendBtn').disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/interviews/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        interview_id: currentInterviewId,
+                        message: message
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка отправки сообщения');
+                }
+
+                const data = await response.json();
+
+                // Убираем индикатор набора
+                document.getElementById('typingIndicator').classList.remove('active');
+
+                // Добавляем ответ интервьюера с задержкой для реалистичности
+                setTimeout(() => {
+                    addMessage('interviewer', data.response);
+
+                    // Проверяем, завершено ли интервью
+                    if (data.is_complete) {
+                        completeInterview();
+                    }
+                }, 500);
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('typingIndicator').classList.remove('active');
+                showError('Ошибка соединения. Проверьте подключение к серверу.');
+            } finally {
+                document.getElementById('sendBtn').disabled = false;
+            }
+        }
+
+        function addMessage(role, content) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+
+            // Прокручиваем вниз
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function completeInterview() {
+            isInterviewComplete = true;
+            document.getElementById('statusText').textContent = 'Интервью завершено';
+            document.getElementById('inputContainer').style.display = 'none';
+            document.getElementById('completeMessage').style.display = 'block';
+
+            // Показываем ссылку на отчет
+            setTimeout(() => {
+                const reportUrl = `${window.location.origin}/api/interviews/${currentInterviewId}/report`;
+                addMessage('interviewer', `Спасибо за участие! Результаты интервью будут отправлены на вашу почту. HR-менеджер свяжется с вами в течение 2-3 рабочих дней.`);
+            }, 1000);
+        }
+
+        // Проверка доступности API при загрузке
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/');
+                if (!response.ok) {
+                    showError('Сервер не отвечает. Проверьте, что backend запущен.');
+                }
+            } catch (error) {
+                showError('Не удается подключиться к серверу. Запустите backend.');
+            }
+        });
+    </script>
+</body>
+</html>
