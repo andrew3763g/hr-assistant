@@ -1,9 +1,8 @@
 # docker-compose.yml - упрощенная версия для отладки
 version: '3.8'
-
 services:
   postgres:
-    image: postgres:15-alpine
+    image: docker.io/bitnami/postgresql:17
     container_name: hr_postgres
     environment:
       # Эти переменные создадут пользователя и БД автоматически
@@ -15,12 +14,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    # Команда для создания БД при старте
-    command: >
-      postgres -c log_statement='all' 
-               -c log_connections=on 
-               -c log_disconnections=on
+      - postgres_data:/bitnami/postgresql
     healthcheck:
       # Правильная проверка - указываем базу hrdb
       test: ["CMD-SHELL", "pg_isready -U hruser -d hrdb || exit 1"]
@@ -30,3 +24,4 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
