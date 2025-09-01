@@ -44,47 +44,21 @@ def file_to_text(filename='in.wav'):
     return recognized_text
 
 
+from pydub import AudioSegment
+
+
+def convert_webm_to_wav(input_path, output_path):
+    audio = AudioSegment.from_file(input_path, format="webm")
+    audio.export(output_path, format="wav")
+
+
 if __name__ == '__main__':
 
-    app = Flask(__name__)
-
-
-    @app.route('/convert_audio_to_text', methods=['POST'])
-    def convert_audio_to_text():
-        """Обрабатываем аудиофайл и возвращаем распознанный текст."""
-        if 'audio' not in request.files:
-            return jsonify({'error': 'Файл не найден'}), 400
-
-        audio_file = request.files['audio']
-        filename = 'temp_in.wav'
-        audio_file.save(filename)
-
-        recognized_text = file_to_text(filename)
-        os.remove(filename)  # Удаляем временный файл
-
-        return jsonify({'recognized_text': recognized_text})
-
-
-    @app.route('/text_to_speech', methods=['POST'])
-    def generate_text_to_speech():
-        """Генерируем звуковое сообщение по переданному тексту."""
-
-        text = request.json.get('text', '')
-
-        print(text)
-        output_filename = 'output.mp3'
-        text_to_speech(text, output_filename)
-
-        return jsonify({'message': f'Файл сохранён как {output_filename}'})
-
-
-    @app.route('/ask_model', methods=['POST'])
-    def process_request():
-        """Обращаемся к модели GigaChat с заданием и получаем ответ."""
-        data = request.json
-        message = data.get('message', '')
-        response = ask_model(message)
-        return jsonify({'response': response})
-
-
-    app.run(debug=True)
+    in_file = 'input_audio.wav'
+    in2_file = 'input2_audio.wav'
+    out_file = 'output_audio.wav'
+    convert_webm_to_wav(in_file,in2_file)
+    txt = file_to_text(in2_file)
+    txt2 = ask_model(txt)
+    print(txt,' -> ', txt2)
+    text_to_speech(txt2,out_filename)

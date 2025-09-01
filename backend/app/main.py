@@ -6,7 +6,7 @@ import uvicorn
 import os
 
 # Важно: импортируем после определения Base
-from database import Base, engine
+from app.database import Base, engine
 
 # Импортируем роутеры (создадим заглушки если их нет)
 try:

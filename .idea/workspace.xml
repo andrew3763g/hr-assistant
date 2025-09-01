@@ -4,15 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/frontend/index2.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/llm_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/AI_HR.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/AI_HR.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="fix docker-compose.yml postgres image">
+      <change afterPath="$PROJECT_DIR$/frontend/static/app.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/templates/index2.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/index2.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/llm_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/llm_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,18 +34,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "serser152"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;serser152&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/andrew3763g/hr-assistant.git",
-    "accountId": "dc9c7be5-e92e-49bc-a6a7-8c22e0f92e52"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/andrew3763g/hr-assistant.git&quot;,
+    &quot;accountId&quot;: &quot;dc9c7be5-e92e-49bc-a6a7-8c22e0f92e52&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -59,14 +58,19 @@
   "keyToString": {
     "DefaultHtmlFileTemplate": "HTML File",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.llm_api.executor": "Run",
     "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "llm__interaction__v0"
+    "git-widget-placeholder": "llm__interaction__v0",
+    "last_opened_file_path": "/home/serj/Загрузки/gigacode-jetbrains-25.8.643.zip",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/frontend/static" />
+      <recent name="$PROJECT_DIR$/frontend/templates" />
       <recent name="$PROJECT_DIR$/frontend" />
     </key>
   </component>
