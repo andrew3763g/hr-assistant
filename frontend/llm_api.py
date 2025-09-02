@@ -52,13 +52,36 @@ def convert_webm_to_wav(input_path, output_path):
     audio.export(output_path, format="wav")
 
 
-if __name__ == '__main__':
-
+#######################################
+#          TESTS                      #
+#######################################
+def test_audio():
+    ''' test audio input -> llm -> audio output'''
     in_file = 'input_audio.wav'
     in2_file = 'input2_audio.wav'
     out_file = 'output_audio.wav'
     convert_webm_to_wav(in_file,in2_file)
     txt = file_to_text(in2_file)
     txt2 = ask_model(txt)
-    print(txt,' -> ', txt2)
-    text_to_speech(txt2,out_filename)
+    print(txt, ' -> ', txt2)
+    text_to_speech(txt2,out_file)
+
+if __name__ == '__main__':
+
+    in_file = 'input_audio.wav'
+    in2_file = 'input2_audio.wav'
+    out_file = 'output_audio.wav'
+    # convert_webm_to_wav(in_file,in2_file)
+    # txt = file_to_text(in2_file)
+    from parse_documents import convert_file_to_text
+
+    resume = open('resume/Алексей Владимирович Черкасов - специалист ИТ.txt').read()
+    vacancy = open('vacancy/vak1.txt')
+    promt = f'''
+    Описание вакансии следующее: {vacancy}
+    
+    Описание резюме: {resume}
+    '''
+    txt2 = ask_model('Напиши список требований вакансии и напротив каждого пункта через тире "да" если резюме соответствует, и "нет" если резюме не соответствует вакансии', promt)
+    print(' -> ', txt2)
+    # text_to_speech(txt2,out_filename)
