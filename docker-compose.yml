@@ -1,27 +1,61 @@
-# docker-compose.yml - упрощенная версия для отладки
+# docker-compose.yml
 version: '3.8'
+
 services:
   postgres:
-    image: docker.io/bitnami/postgresql:17
+    image: postgres:15-alpine
     container_name: hr_postgres
     environment:
-      # Эти переменные создадут пользователя и БД автоматически
       POSTGRES_USER: hruser
       POSTGRES_PASSWORD: hrpassword
       POSTGRES_DB: hrdb
-      # Разрешаем подключения без пароля для отладки
-      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/bitnami/postgresql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hr_network
     healthcheck:
-      # Правильная проверка - указываем базу hrdb
-      test: ["CMD-SHELL", "pg_isready -U hruser -d hrdb || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U hruser -d hrdb"]
       interval: 5s
       timeout: 5s
       retries: 10
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hr_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://hruser:hrpassword@postgres:5432/hrdb
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - hr_network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    image: nginx:alpine
+    container_name: hr_frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - hr_network
+
 volumes:
   postgres_data:
-    driver: local
+
+networks:
+  hr_network:
+    driver: bridge
