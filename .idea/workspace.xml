@@ -4,47 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="frontend v0 only translate">
-      <change afterPath="$PROJECT_DIR$/frontend/input2_audio.wav" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/input_audio.wav" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/input_audio.webm" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/output_audio.wav" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/parse_documents.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/process_raw_resume_vac.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/process_resume.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume/Александр Иванович Павлов - специалист ИТ.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume/Алексей Владимирович Черкасов - специалист ИТ.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume/Евгений Дмитриевич Сидоров - бизнес аналитик.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume/Екатерина Семёновна Долгих - бизнес аналитик.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume/Елена Игоревна Петрова - бизнес аналитик.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume_raw/Александр Иванович Павлов - специалист ИТ.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume_raw/Алексей Владимирович Черкасов - специалист ИТ.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume_raw/Евгений Дмитриевич Сидоров - бизнес аналитик.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume_raw/Екатерина Семёновна Долгих - бизнес аналитик.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/resume_raw/Елена Игоревна Петрова - бизнес аналитик.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/tika-app-3.2.2.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/vacancy/vak1.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/vacancy/vak2.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/Dockerfile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/api/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/api/interviews.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/database.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/candidate.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/interview.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/interview_message.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/vacancy.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/schemas/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/services/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/services/ai_service.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/index.html" beforeDir="false" />
+    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy.">
       <change beforePath="$PROJECT_DIR$/frontend/llm_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/llm_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/nginx.conf" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -140,11 +101,20 @@
       <option name="project" value="LOCAL" />
       <updated>1756759714767</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy.">
+      <option name="closed" value="true" />
+      <created>1756842033652</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1756842033652</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="frontend v0 only translate" />
-    <option name="LAST_COMMIT_MESSAGE" value="frontend v0 only translate" />
+    <MESSAGE value="frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy." />
+    <option name="LAST_COMMIT_MESSAGE" value="frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy." />
   </component>
 </project>
