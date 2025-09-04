@@ -1,0 +1,251 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Критерии оценки кандидатов на основе интервью",
+    "last_updated": "2024-01-01"
+  },
+
+  "auto_reject_rules": {
+    "identity_mismatch": {
+      "enabled": true,
+      "fields": ["name", "gender", "age"],
+      "description": "Автоматический отказ при несовпадении личных данных с резюме"
+    },
+
+    "red_flag_positive": {
+      "enabled": true,
+      "question_ids": [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+      "description": "Автоматический отказ при положительном ответе на любой красный флаг"
+    },
+
+    "red_flag_silence": {
+      "enabled": true,
+      "question_ids": [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+      "description": "Автоматический отказ при молчании на вопрос-красный флаг"
+    },
+
+    "identity_silence": {
+      "enabled": true,
+      "question_ids": [1, 2],
+      "description": "Автоматический отказ при молчании на вопросы о ФИО и поле"
+    },
+
+    "low_response_rate": {
+      "enabled": true,
+      "min_response_rate": 0.7,
+      "description": "Автоматический отказ при ответе менее чем на 70% вопросов"
+    }
+  },
+
+  "scoring_system": {
+    "base_scores": {
+      "setup_question": 0,
+      "red_flag_question": 0,
+      "basic_question": 1,
+      "skill_question": 1.5
+    },
+
+    "penalties": {
+      "no_answer_basic": -0.5,
+      "no_answer_skill": -1.0,
+      "no_answer_red_flag": "auto_reject",
+      "no_answer_identity": "auto_reject",
+      "silence_timeout_basic": -0.5,
+      "silence_timeout_skill": -1.0,
+      "silence_timeout_red_flag": "auto_reject",
+      "irrelevant_answer": -0.3,
+      "evasive_answer": -0.5
+    },
+
+    "bonuses": {
+      "confidence_threshold": 0.9,
+      "confidence_bonus_percent": 30,
+      "exceptional_answer": 0.5,
+      "relevant_experience": 0.3
+    }
+  },
+
+  "evaluation_metrics": {
+    "confidence": {
+      "keywords_positive": ["уверен", "точно", "безусловно", "определенно", "конечно"],
+      "keywords_negative": ["возможно", "наверное", "может быть", "не уверен", "не знаю"],
+      "voice_analysis": true,
+      "hesitation_penalty": -0.1
+    },
+
+    "coherence": {
+      "min_word_count": 10,
+      "max_word_count": 300,
+      "logical_structure_required": true,
+      "repetition_penalty": -0.2
+    },
+
+    "relevance": {
+      "keyword_matching": true,
+      "context_understanding": true,
+      "off_topic_penalty": -0.5
+    },
+
+    "honesty": {
+      "contradiction_check": true,
+      "consistency_with_resume": true,
+      "admission_of_mistakes": 0.2
+    }
+  },
+
+  "question_type_weights": {
+    "identity_verification": {
+      "weight": 0,
+      "auto_reject_on_fail": true
+    },
+    "red_flag": {
+      "weight": -100,
+      "auto_reject_on_positive": true,
+      "auto_reject_on_silence": true
+    },
+    "factual": {
+      "weight": 1,
+      "verify_with_resume": true
+    },
+    "behavioral": {
+      "weight": 1.5,
+      "star_method_bonus": 0.3
+    },
+    "situational": {
+      "weight": 1.2,
+      "problem_solving_focus": true
+    },
+    "open": {
+      "weight": 1,
+      "creativity_bonus": 0.2
+    }
+  },
+
+  "ranking_system": {
+    "categories": [
+      {
+        "name": "next_stage",
+        "rank_range": [1, 5],
+        "min_score_percentile": 80,
+        "description": "Топ-5 кандидатов приглашаются на следующий этап",
+        "notification_template": "next_stage_invitation"
+      },
+      {
+        "name": "reserve",
+        "rank_range": [6, 10],
+        "min_score_percentile": 60,
+        "description": "Кандидаты 6-10 помещаются в резерв",
+        "notification_template": "reserve_notification"
+      },
+      {
+        "name": "rejected",
+        "rank_range": [11, null],
+        "min_score_percentile": 0,
+        "description": "Остальные кандидаты получают отказ",
+        "notification_template": "rejection_notification"
+      }
+    ],
+
+    "tie_breakers": [
+      "confidence_score",
+      "experience_years",
+      "education_level",
+      "interview_completion_time"
+    ]
+  },
+
+  "notification_templates": {
+    "identity_mismatch": {
+      "subject": "Результат рассмотрения вашей кандидатуры",
+      "body": "К сожалению, вы представили в резюме недостоверные данные в поле {field}. Это не позволяет нашей компании рассматривать вашу кандидатуру далее. Вам отказано."
+    },
+
+    "low_response": {
+      "subject": "Результат интервью",
+      "body": "К сожалению, вы ответили менее чем на 70% интересующих нас вопросов. Вам отказано."
+    },
+
+    "red_flag": {
+      "subject": "Результат интервью",
+      "body": "К сожалению, ваш ответ на вопрос '{question}' вынуждает нашу компанию отказать вам."
+    },
+
+    "next_stage_invitation": {
+      "subject": "Приглашение на следующий этап",
+      "body": "Поздравляем! Вы приглашаетесь на очное собеседование в нашу компанию. Просим вас согласовать время визита по телефону {phone} с нашим сотрудником {hr_name}."
+    },
+
+    "reserve_notification": {
+      "subject": "Статус вашей кандидатуры",
+      "body": "Вы находитесь в резерве нашей компании. В течение 14 дней вы получите еще одно сообщение с приглашением на собеседование или с отказом. К сожалению, нашу компанию не устраивает уровень навыков и компетенций в вопросах: {weak_points}."
+    },
+
+    "rejection_notification": {
+      "subject": "Результат рассмотрения вашей кандидатуры",
+      "body": "К сожалению, на очное собеседование были приглашены другие кандидаты. Но мы помним о вас и свяжемся с вами, когда снова возникнет интересная вам вакансия."
+    }
+  },
+
+  "special_rules": {
+    "age_verification": {
+      "min_age": 18,
+      "auto_reject_underage": true
+    },
+
+    "language_requirements": {
+      "russian_proficiency_required": true,
+      "english_test_trigger": ["английский", "english", "fluent"],
+      "switch_language_for_test": true
+    },
+
+    "skill_verification": {
+      "generate_followup_questions": true,
+      "max_followup_questions": 3,
+      "technical_depth_levels": ["basic", "intermediate", "advanced"]
+    },
+
+    "red_flag_handling": {
+      "immediate_termination": false,
+      "complete_all_questions": true,
+      "mark_for_auto_reject": true
+    }
+  },
+
+  "quality_checks": {
+    "audio_quality": {
+      "min_volume_db": -40,
+      "max_background_noise_db": -30,
+      "require_clear_speech": true
+    },
+
+    "response_timing": {
+      "min_response_time_seconds": 3,
+      "max_response_time_seconds": 180,
+      "suspicious_if_under_seconds": 5
+    },
+
+    "authenticity_checks": {
+      "voice_consistency": true,
+      "response_patterns": true,
+      "ai_generated_detection": true
+    }
+  },
+
+  "reporting": {
+    "score_breakdown": {
+      "show_category_scores": true,
+      "show_individual_questions": true,
+      "show_penalty_details": true,
+      "show_bonus_details": true
+    },
+
+    "recommendations": {
+      "generate_hr_summary": true,
+      "highlight_red_flags": true,
+      "suggest_follow_up_areas": true,
+      "compare_with_requirements": true
+    },
+
+    "export_formats": ["json", "pdf", "csv"]
+  }
+}

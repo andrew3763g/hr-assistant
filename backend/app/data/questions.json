@@ -1,0 +1,453 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "total_questions": 43,
+    "categories": [
+      "Установочные вопросы",
+      "Красные флаги",
+      "Базовые вопросы"
+    ],
+    "time_per_question_seconds": 180
+  },
+
+  "questions": [
+    {
+      "id": 1,
+      "category": "setup",
+      "subcategory": "identity",
+      "text": "Назовите вашу фамилию, имя и отчество.",
+      "type": "identity_verification",
+      "required": true,
+      "auto_reject_on_mismatch": true,
+      "time_limit": 180
+    },
+    {
+      "id": 2,
+      "category": "setup",
+      "subcategory": "identity",
+      "text": "Назовите ваш пол - мужской или женский.",
+      "type": "identity_verification",
+      "required": true,
+      "auto_reject_on_mismatch": true,
+      "time_limit": 180
+    },
+    {
+      "id": 3,
+      "category": "setup",
+      "subcategory": "location",
+      "text": "Назовите населенный пункт, в котором вы живете.",
+      "type": "identity_verification",
+      "required": true,
+      "auto_reject_on_mismatch": false,
+      "time_limit": 180
+    },
+    {
+      "id": 4,
+      "category": "setup",
+      "subcategory": "experience",
+      "text": "Сколько лет составляет ваш общий трудовой стаж?",
+      "type": "factual",
+      "required": true,
+      "auto_reject_on_mismatch": false,
+      "time_limit": 180
+    },
+    {
+      "id": 5,
+      "category": "setup",
+      "subcategory": "legal",
+      "text": "Вы - гражданин РФ? Если нет, то какой страны?",
+      "type": "factual",
+      "required": true,
+      "auto_reject_on_mismatch": false,
+      "time_limit": 180
+    },
+    {
+      "id": 6,
+      "category": "setup",
+      "subcategory": "language",
+      "text": "Насколько хорошо вы знаете русский язык?",
+      "type": "self_assessment",
+      "required": true,
+      "auto_reject_on_mismatch": false,
+      "time_limit": 180
+    },
+
+    {
+      "id": 7,
+      "category": "red_flag",
+      "subcategory": "age",
+      "text": "Назовите число, месяц и год вашего рождения. Вы - совершеннолетний?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["несовершеннолетний", "нет", "не достиг"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 8,
+      "category": "red_flag",
+      "subcategory": "personal",
+      "text": "Если вы - женщина, планируете ли родить ребенка в течение ближайших двух лет?",
+      "type": "red_flag",
+      "required": false,
+      "red_flag_trigger": ["да", "планирую", "хочу"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 9,
+      "category": "red_flag",
+      "subcategory": "health",
+      "text": "Употребляете ли вы наркотические вещества?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "употребляю", "иногда"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 10,
+      "category": "red_flag",
+      "subcategory": "health",
+      "text": "Бывают ли у вас запои? Лечились ли вы от алкоголизма?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "бывают", "лечился"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 11,
+      "category": "red_flag",
+      "subcategory": "legal",
+      "text": "Были ли вы когда-либо признаны недееспособным по решению суда?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "был", "признавали"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 12,
+      "category": "red_flag",
+      "subcategory": "legal",
+      "text": "Действуют ли в отношении вас судебные запреты?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "действуют", "есть"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 13,
+      "category": "red_flag",
+      "subcategory": "legal",
+      "text": "Действуют ли в отношении вас исполнительные производства?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "действуют", "есть"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 14,
+      "category": "red_flag",
+      "subcategory": "legal",
+      "text": "Были ли вы когда-либо осуждены по статье Уголовного Кодекса РФ?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "был", "осуждали"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 15,
+      "category": "red_flag",
+      "subcategory": "legal",
+      "text": "Есть ли у вас второе гражданство?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "есть", "имею"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 16,
+      "category": "red_flag",
+      "subcategory": "legal",
+      "text": "Признаны ли вы Иностранным агентом согласно закону РФ?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "признан", "являюсь"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 17,
+      "category": "red_flag",
+      "subcategory": "legal",
+      "text": "Признаны ли вы террористом или экстремистом по закону РФ?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "признан", "являюсь"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 18,
+      "category": "red_flag",
+      "subcategory": "military",
+      "text": "Подлежите ли вы призыву на действительную воинскую службу РФ в течение ближайшего года?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "подлежу", "призовут"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+    {
+      "id": 19,
+      "category": "red_flag",
+      "subcategory": "health",
+      "text": "Есть ли у вас хронические заболевания? Какие?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["туберкулез", "гепатит", "психическое"],
+      "auto_reject_on_positive": false,
+      "time_limit": 180
+    },
+    {
+      "id": 20,
+      "category": "red_flag",
+      "subcategory": "health",
+      "text": "Верно ли, что в течение последнего года вашей работы вы оформляли листы нетрудоспособности на общий срок более 90 дней?",
+      "type": "red_flag",
+      "required": true,
+      "red_flag_trigger": ["да", "верно", "оформлял"],
+      "auto_reject_on_positive": true,
+      "time_limit": 180
+    },
+
+    {
+      "id": 21,
+      "category": "basic",
+      "subcategory": "introduction",
+      "text": "Расскажите о себе.",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["coherence", "relevance", "confidence"],
+      "time_limit": 180
+    },
+    {
+      "id": 22,
+      "category": "basic",
+      "subcategory": "personal",
+      "text": "Есть ли у вас супруг? Если нет, то был ли супруг, и почему вы расстались?",
+      "type": "personal",
+      "required": false,
+      "time_limit": 180
+    },
+    {
+      "id": 23,
+      "category": "basic",
+      "subcategory": "personal",
+      "text": "Есть ли у вас дети? Сколько их? Назовите их имена и возраст.",
+      "type": "personal",
+      "required": false,
+      "time_limit": 180
+    },
+    {
+      "id": 24,
+      "category": "basic",
+      "subcategory": "personal",
+      "text": "Есть ли у вас домашние животные? Какие? Как их зовут?",
+      "type": "personal",
+      "required": false,
+      "time_limit": 180
+    },
+    {
+      "id": 25,
+      "category": "basic",
+      "subcategory": "availability",
+      "text": "Вы в состоянии выезжать в командировки по работе? Насколько длительные?",
+      "type": "factual",
+      "required": true,
+      "time_limit": 180
+    },
+    {
+      "id": 26,
+      "category": "basic",
+      "subcategory": "self_assessment",
+      "text": "Расскажите о сильных сторонах вашей личности.",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["self_awareness", "honesty", "relevance"],
+      "time_limit": 180
+    },
+    {
+      "id": 27,
+      "category": "basic",
+      "subcategory": "self_assessment",
+      "text": "Расскажите о ваших недостатках. Какой из них сильнее всего влияет на вашу жизнь?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["self_awareness", "honesty", "growth_mindset"],
+      "time_limit": 180
+    },
+    {
+      "id": 28,
+      "category": "basic",
+      "subcategory": "personal",
+      "text": "Расскажите, чем вы занимаетесь в свободное от работы время? Какие у вас увлечения, хобби?",
+      "type": "personal",
+      "required": false,
+      "time_limit": 180
+    },
+    {
+      "id": 29,
+      "category": "basic",
+      "subcategory": "motivation",
+      "text": "Почему вы выбрали вашу специальность, и считаете ли вы, что это правильный выбор?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["motivation", "coherence", "self_reflection"],
+      "time_limit": 180
+    },
+    {
+      "id": 30,
+      "category": "basic",
+      "subcategory": "education",
+      "text": "Какое высшее учебное заведение вы заканчивали, и по какой специальности?",
+      "type": "factual",
+      "required": true,
+      "time_limit": 180
+    },
+    {
+      "id": 31,
+      "category": "basic",
+      "subcategory": "education",
+      "text": "Есть ли у вас ученая степень?",
+      "type": "factual",
+      "required": false,
+      "time_limit": 180
+    },
+    {
+      "id": 32,
+      "category": "basic",
+      "subcategory": "achievements",
+      "text": "Есть ли у вас изобретения?",
+      "type": "factual",
+      "required": false,
+      "time_limit": 180
+    },
+    {
+      "id": 33,
+      "category": "basic",
+      "subcategory": "experience",
+      "text": "Почему вы уволились с вашего предыдущего места работы? Это было увольнение по инициативе администрации компании?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["honesty", "professionalism", "growth_mindset"],
+      "time_limit": 180
+    },
+    {
+      "id": 34,
+      "category": "basic",
+      "subcategory": "expectations",
+      "text": "Как вы представляете себе работу, на которую вы претендуете?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["understanding", "realistic_expectations", "preparation"],
+      "time_limit": 180
+    },
+    {
+      "id": 35,
+      "category": "basic",
+      "subcategory": "company_knowledge",
+      "text": "Что вы знаете о нашей компании?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["preparation", "interest", "research_skills"],
+      "time_limit": 180
+    },
+    {
+      "id": 36,
+      "category": "basic",
+      "subcategory": "motivation",
+      "text": "Почему вы убеждены, что вы - лучшая кандидатура для нас, и мы должны вас нанять?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["confidence", "self_promotion", "value_proposition"],
+      "time_limit": 180
+    },
+    {
+      "id": 37,
+      "category": "basic",
+      "subcategory": "career",
+      "text": "Кем вы видите себя через 5 лет?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["ambition", "realistic_goals", "alignment"],
+      "time_limit": 180
+    },
+    {
+      "id": 38,
+      "category": "basic",
+      "subcategory": "teamwork",
+      "text": "Как другие люди охарактеризовали бы ваш стиль поведения на работе?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["self_awareness", "teamwork", "communication"],
+      "time_limit": 180
+    },
+    {
+      "id": 39,
+      "category": "basic",
+      "subcategory": "teamwork",
+      "text": "Какую роль вы обычно играете в команде?",
+      "type": "open",
+      "required": true,
+      "evaluation_criteria": ["teamwork", "self_awareness", "flexibility"],
+      "time_limit": 180
+    },
+    {
+      "id": 40,
+      "category": "basic",
+      "subcategory": "leadership",
+      "text": "Расскажите о проекте, где вы были лидером группы.",
+      "type": "behavioral",
+      "required": false,
+      "evaluation_criteria": ["leadership", "results", "team_management"],
+      "time_limit": 180
+    },
+    {
+      "id": 41,
+      "category": "basic",
+      "subcategory": "problem_solving",
+      "text": "Расскажите о случае, когда вы решили проблему самостоятельно.",
+      "type": "behavioral",
+      "required": true,
+      "evaluation_criteria": ["independence", "problem_solving", "initiative"],
+      "time_limit": 180
+    },
+    {
+      "id": 42,
+      "category": "basic",
+      "subcategory": "teamwork",
+      "text": "Что вы сделаете, если увидите, что член вашей команды не справляется со своей частью общей задачи?",
+      "type": "situational",
+      "required": true,
+      "evaluation_criteria": ["collaboration", "communication", "problem_solving"],
+      "time_limit": 180
+    },
+    {
+      "id": 43,
+      "category": "basic",
+      "subcategory": "failure",
+      "text": "Расскажите о провальном проекте, в котором вы участвовали.",
+      "type": "behavioral",
+      "required": true,
+      "evaluation_criteria": ["honesty", "learning_ability", "accountability"],
+      "time_limit": 180
+    }
+  ]
+}
