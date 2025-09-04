@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HR bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        input[type="file"] {
+            margin: 10px;
+        }
+        #recording-status {
+            color: red;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>HR bot</h1>
+    <p>
+        <img src="/static/face.gif">
+    </p>
+    <p>
+        <input type="file" id="resume-upload" accept=".pdf,.doc,.docx">
+        <label for="resume-upload">Загрузить резюме</label>
+    </p>
+    <p>
+        <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx">
+        <label for="vacancy-upload">Загрузить вакансию</label>
+    </p>
+    <p>
+        <button id="start-btn">Запустить запись</button>
+        <button id="stop-btn" disabled>Остановить запись</button>
+        <div id="recording-status"></div>
+    </p>
+    <audio controls autoplay></audio>
+
+    <script src="/static/app.js"></script>
+    <script>
+        // Функция для получения state
+        async function fetchState() {
+            try {
+                const response = await fetch('/get_state');
+                if (!response.ok) throw new Error('Не удалось получить state');
+                const data = await response.json();
+                console.log('Получен state:', data);
+                return data.state;
+            } catch (error) {
+                console.error('Ошибка получения state:', error);
+                alert('Ошибка: Не удалось получить состояние');
+            }
+        }
+
+        // Функция для получения вопроса
+        async function getQuestion(state) {
+            try {
+                const response = await fetch('/get_question', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ state })
+                });
+
+                if (!response.ok) throw new Error('Не удалось получить вопрос');
+
+                const data = await response.json();
+
+                // Обработка аудио
+                const audioBlob = base64ToBlob(data.audio_data, 'audio/wav');
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audioElement = document.querySelector('audio');
+                audioElement.src = audioUrl;
+                audioElement.play();
+            } catch (error) {
+                console.error('Ошибка получения вопроса:', error);
+                alert('Ошибка: Не удалось получить вопрос');
+            }
+        }
+
+        // Преобразование base64 в Blob
+        function base64ToBlob(base64, mimeType) {
+            const byteString = atob(base64);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeType });
+        }
+
+        // Инициализация при загрузке страницы
+        window.addEventListener('load', () => {
+            fetchState().then(state => {
+                if (state) getQuestion(state);
+            });
+        });
+    </script>
+</body>
+</html>

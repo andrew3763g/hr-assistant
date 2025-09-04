@@ -80,3 +80,47 @@ function stopRecording() {
 // Назначаем обработчики кнопкам
 startBtn.addEventListener('click', startRecording);
 stopBtn.addEventListener('click', stopRecording);
+
+document.getElementById('resume-upload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const formData = new FormData();
+        formData.append('resume-upload', file);
+
+        fetch('/upload/resume', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при загрузке резюме');
+        });
+        event.target.value = '';
+    }
+});
+
+document.getElementById('vacancy-upload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const formData = new FormData();
+        formData.append('vacancy-upload', file);
+
+        fetch('/upload/vacancy', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при загрузке вакансии');
+        });
+        event.target.value = '';
+    }
+});
