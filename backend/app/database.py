@@ -40,7 +40,7 @@ logger.setLevel(logging.INFO)
 # === Настройка SQLAlchemy ===
 
 # Получаем URL базы данных из конфигурации
-DATABASE_URL = settings.get_database_url()
+DATABASE_URL = settings.DATABASE_URL
 
 # Создаем движок базы данных с оптимальными настройками
 engine = create_engine(

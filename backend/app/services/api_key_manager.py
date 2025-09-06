@@ -1,51 +1,51 @@
 # backend/app/services/api_key_manager.py
-"""
-Менеджер API ключей - хранит ключи в памяти на время сессии.
-Для production можно использовать Redis или зашифрованное хранилище.
-"""
-from typing import Optional, Dict
+from __future__ import annotations
 import os
+from typing import Optional, Dict
 
+try:
+    # settings подхватывает .env через pydantic-settings
+    from backend.app.config import settings  # type: ignore
+except Exception:
+    settings = None  # на случай запуска из alembic и т.п.
 
 class APIKeyManager:
-    _instance = None
-    _keys: Dict[str, str] = {}
+    """
+    Мини-менеджер API-ключей.
+    Приоритет: переменные окружения -> settings из .env.
+    Поддерживаем "openai" и "anthropic" (второй можно оставить пустым).
+    """
+    _name_map: Dict[str, tuple[str, ...]] = {
+        "openai": ("OPENAI_API_KEY",),
+        "anthropic": ("ANTHROPIC_API_KEY",),
+    }
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._keys = {}
-        return cls._instance
+    def __init__(self) -> None:
+        self._cache: Dict[str, Optional[str]] = {}
 
-    def set_openai_key(self, key: str) -> bool:
-        """Устанавливает OpenAI API ключ для текущей сессии"""
-        if key and key.startswith('sk-'):
-            self._keys['openai'] = key
-            os.environ['OPENAI_API_KEY'] = key  # Для библиотеки openai
-            return True
-        return False
+    def get(self, provider: str) -> Optional[str]:
+        provider = provider.lower()
+        if provider in self._cache:
+            return self._cache[provider]
 
-    def get_openai_key(self) -> Optional[str]:
-        """Получает OpenAI API ключ"""
-        # Сначала проверяем сохраненный ключ
-        if 'openai' in self._keys:
-            return self._keys['openai']
-        # Потом переменную окружения (для локальной разработки)
-        key = os.getenv('OPENAI_API_KEY')
-        if key:
-            self._keys['openai'] = key
-        return key
+        env_names = self._name_map.get(provider, (provider.upper() + "_API_KEY",))
+        value: Optional[str] = None
 
-    def has_openai_key(self) -> bool:
-        """Проверяет наличие OpenAI ключа"""
-        return self.get_openai_key() is not None
+        # 1) env
+        for name in env_names:
+            value = os.getenv(name)
+            if value:
+                break
 
-    def clear_keys(self):
-        """Очищает все ключи"""
-        self._keys = {}
-        if 'OPENAI_API_KEY' in os.environ:
-            del os.environ['OPENAI_API_KEY']
+        # 2) settings.*
+        if not value and settings is not None:
+            for name in env_names:
+                value = getattr(settings, name, None)
+                if value:
+                    break
 
+        self._cache[provider] = value
+        return value
 
-# Глобальный экземпляр
-api_key_manager = APIKeyManager()
+    def has(self, provider: str) -> bool:
+        return bool(self.get(provider))
