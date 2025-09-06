@@ -1,9 +1,9 @@
 # backend/app/models/interview_message.py
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
-from app.database import Base
+from ..database import Base
 
 
 class MessageRole(str, enum.Enum):

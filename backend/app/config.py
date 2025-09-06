@@ -20,7 +20,7 @@ API ключи не хранятся в коде, вводятся при ста
 Управляет всеми настройками системы, API ключами и путями к файлам
 """
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, Dict, Any
 import os
 from pathlib import Path
@@ -29,6 +29,11 @@ import json
 
 class Settings(BaseSettings):
     """Основные настройки приложения"""
+
+    model_config = SettingsConfigDict(
+        env_file='.env',
+        extra='ignore',  # игнорировать переменные, которых нет в модели
+    )
 
     # === Базовые настройки приложения ===
     APP_NAME: str = "HR AI Assistant"
@@ -84,10 +89,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    class Config:
-        """Настройки Pydantic"""
-        env_file = ".env"
-        case_sensitive = True
+    # class Config:
+    #     """Настройки Pydantic"""
+    #     env_file = ".env"
+    #     case_sensitive = True
 
     def __init__(self, **kwargs):
         """Инициализация с загрузкой дополнительных файлов"""

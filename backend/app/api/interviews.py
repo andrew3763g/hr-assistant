@@ -2,10 +2,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from app.database import get_db
-from app.models import Interview, Candidate, Vacancy, InterviewMessage, MessageRole
-from app.schemas.interview import InterviewCreate, InterviewResponse, InterviewChatRequest, InterviewChatResponse
-from app.services.ai_service import AIInterviewer
+from ..database import get_db
+from ..models import Interview, Candidate, Vacancy, InterviewMessage, MessageRole
+from ..schemas.interview import InterviewCreate, InterviewResponse, InterviewChatRequest, InterviewChatResponse
+from ..services.ai_service import AIInterviewer
 from datetime import datetime
 
 router = APIRouter()

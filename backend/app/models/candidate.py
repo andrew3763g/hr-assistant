@@ -50,7 +50,7 @@ from datetime import datetime
 import enum
 from typing import Dict, List, Optional
 
-from app.database import Base
+from ..database import Base
 
 
 class CandidateStatus(str, enum.Enum):

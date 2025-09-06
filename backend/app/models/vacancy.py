@@ -10,7 +10,7 @@ from datetime import datetime
 import enum
 from typing import Dict, List, Optional
 
-from app.database import Base
+from ..database import Base
 
 
 class VacancyStatus(str, enum.Enum):

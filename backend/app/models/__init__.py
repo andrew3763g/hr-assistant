@@ -1,15 +1,8 @@
-# backend/app/models/__init__.py
-from app.models.candidate import Candidate
-from app.models.vacancy import Vacancy
-from app.models.interview import Interview, InterviewStatus, InterviewType
-from app.models.interview_message import InterviewMessage, MessageRole
+"""Модели базы данных"""
 
-__all__ = [
-    "Candidate",
-    "Vacancy",
-    "Interview",
-    "InterviewStatus",
-    "InterviewType",
-    "InterviewMessage",
-    "MessageRole"
-]
+from .candidate import Candidate, CandidateStatus, Gender, EducationLevel
+from .vacancy import Vacancy, VacancyStatus, EmploymentType, WorkFormat, ExperienceLevel
+from .interview import Interview, InterviewStatus, InterviewQuestion, InterviewAnswer
+from .evaluation import Evaluation, EvaluationDecision, VacancyMatch
+
+__all__ = ['Candidate', 'Vacancy', 'Interview', 'Evaluation', 'VacancyMatch']
