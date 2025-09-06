@@ -30,7 +30,7 @@ import logging
 from typing import Generator
 import time
 
-from app.config import settings
+from .config import settings
 
 # Настройка логирования для отладки БД
 logging.basicConfig()
