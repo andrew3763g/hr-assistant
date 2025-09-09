@@ -19,11 +19,11 @@ def allowed_file(filename):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index2.html')
 
 @app.route('/admin')
 def admin():
-    return render_template('index.html')
+    return render_template('index2.html')
 
 
 @app.route('/process-sound', methods=['POST'])
@@ -72,7 +72,7 @@ def load_all_resumes_to_db():
         if filename.endswith('.txt'):
             resume_path = os.path.join('resume', filename)
             resume_text = open(resume_path).read()
-            db_utils.add_resume_to_db(filename, resume_text)
+            db_utils.load_resume_to_db(filename, resume_text)
             '''удалить файл резюме'''
             os.remove(resume_path)
 
@@ -90,7 +90,7 @@ def load_all_vacancies_to_db():
         if filename.endswith('.txt'):
             vacancy_path = os.path.join('vacancy', filename)
             vacancy_text = open(vacancy_path).read()
-            db_utils.add_vacancy_to_db(filename, vacancy_text)
+            db_utils.load_vacancy_to_db(filename, vacancy_text)
             '''удалить файл резюме'''
             os.remove(vacancy_path)
 
@@ -102,18 +102,19 @@ def resume_upload():
         return jsonify({'error': 'No file part'}), 400
 
     file = request.files['resume-upload']
-
+    print('file',file.filename)
     if file.filename == '':
         print('No selected file')
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
+        filename = file.filename
         filepath = os.path.join('resume_raw', filename)
         file.save(filepath)
         # convert to text
-        os.system(f'java -jar tika-app-3.2.2.jar -t resume_raw resume')
-        print('Resume uploaded.')
+        os.system(f'java -jar tika-app-3.2.2.jar -t -i resume_raw -o resume')
+        print(f'Resume {filename} uploaded.')
+        load_all_resumes_to_db()
         return jsonify({'message': f'Резюме загружено: {filename}'}), 200
     else:
         print('Invalid file type')
@@ -134,20 +135,18 @@ def vacancy_upload():
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
+        filename = file.filename
         filepath = os.path.join('vacancy_raw', filename)
         file.save(filepath)
+        os.system(f'java -jar tika-app-3.2.2.jar -t -i vacancy_raw -o vacancy')
+        print(f'Вакансия {filename} загружена. ')
+        load_all_vacancies_to_db()
 
 
         return jsonify({'message': f'Вакансия загружена: {filename}'}), 200
     else:
         return jsonify({'error': 'Invalid file type'}), 400
 
-@app.route('/get_state', methods=['GET'])
-def get_state():
-    # Здесь можно реализовать логику получения состояния
-    state = "initial"  # Пример значения
-    return jsonify({'state': state})
 
 @app.route('/get_question', methods=['POST'])
 def get_question():
@@ -172,27 +171,48 @@ def get_question():
     })
 
 @app.route('/get_greeting', methods=['POST'])
-def get_question():
+def get_greeting():
     data = request.get_json()
     state = data.get('state')
+    print('state',state)
 
     if not state:
         return jsonify({'error': 'Missing "state" parameter'}), 400
 
-    # Здесь можно вызвать LLM, сформировать ответ и преобразовать его в аудио
-    out_text = llm_api.ask_model('Поздоровайся, перед тобой администратор системы', '')  # Пример вызова модели
-    llm_api.text_to_speech(out_text)  # Предположим, функция возвращает путь к файлу
-    audio_path = 'output.mp3'
+    if state == 'new':
+        # Здесь можно вызвать LLM, сформировать ответ и преобразовать его в аудио
+        out_text = llm_api.ask_model('Поздоровайся, перед тобой администратор системы. Предложи загрузить файлы вакансий и резюме', '')  # Пример вызова модели
+        llm_api.text_to_speech(out_text)  # Предположим, функция возвращает путь к файлу
+        audio_path = 'output.mp3'
 
-    with open(audio_path, 'rb') as f:
-        encoded_audio = base64.b64encode(f.read()).decode('utf-8')
+        with open(audio_path, 'rb') as f:
+            encoded_audio = base64.b64encode(f.read()).decode('utf-8')
+
+        return jsonify({
+            'wav': encoded_audio,
+            'state': 'new',
+            'question': out_text
+        })
+    else:
+        return jsonify({
+            'wav': '',
+            'state': 'wait',
+            'question': ''
+        })
+
+@app.route('/interview/<uuid>', methods=['GET'])
+def get_user_conv(uuid):
+    if not uuid:
+        return jsonify({'error': 'Missing "uuid" parameter'}), 400
+
+
+    db_utils.add_uuid_message_to_db(uuid,'') # начало диалога
 
     return jsonify({
-        'wav': encoded_audio,
-        'state': 'new',
-        'question': out_text
+        'wav': '',
+        'state': 'wait',
+        'question': ''
     })
-
 
 if __name__ == '__main__':
     app.run(debug=True)

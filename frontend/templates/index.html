@@ -59,21 +59,7 @@
     <script src="/static/app.js"></script>
     <script>
         let pollingInterval = null;
-
-        // Функция для получения state
-        async function fetchState() {
-            try {
-                const response = await fetch('/get_state');
-                if (!response.ok) throw new Error('Не удалось получить state');
-                const data = await response.json();
-                console.log('Получен state:', data);
-                return data.state;
-            } catch (error) {
-                console.error('Ошибка получения state:', error);
-                alert('Ошибка: Не удалось получить состояние');
-            }
-        }
-
+        let state='';
         // Функция для получения вопроса
         async function getQuestion(state) {
             try {
@@ -94,7 +80,7 @@
                     const audioElement = document.querySelector('audio');
                     audioElement.src = audioUrl;
                     audioElement.play();
-
+                    audioElement.hidden = True;
                     // Добавление вопроса в список
                     const questionList = document.getElementById('question-list');
                     const item = document.createElement('div');
@@ -124,19 +110,18 @@
 
         // Начать опрос сервера
         function startPolling() {
-            fetchState().then(state => {
                 getQuestion(state);
-            });
+            };
 
             pollingInterval = setInterval(() => {
-                fetchState().then(state => {
                     getQuestion(state);
-                });
-            }, 5000); // Повтор каждые 5 секунд
+                })
+            , 5000); // Повтор каждые 5 секунд
         }
 
         // Инициализация при загрузке страницы
         window.addEventListener('load', () => {
+            audioElement.hidden = True;
             startPolling();
         });
     </script>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>HR bot</title>
+    <title>HR bot Admin panel</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,24 +13,118 @@
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            margin: 10px;
+        }
+        input[type="file"] {
+            margin: 10px;
         }
         #recording-status {
             color: red;
             display: none;
         }
+        .question-list {
+            margin-top: 30px;
+        }
+        .question-item {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <h1>HR bot</h1>
+    <h2>Admin panel</h2>
     <p>
         <img src="/static/face.gif">
     </p>
+
+    <!-- Список вопросов -->
+    <div class="question-list" id="question-list"></div>
+
     <p>
-    <button id="start-btn">Запустить запись ответа</button>
-    <div id="recording-status"></div>
+        <input type="file" id="resume-upload" accept=".pdf,.doc,.docx">
+        <label for="resume-upload">Загрузить резюме</label>
+    </p>
+    <p>
+        <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx">
+        <label for="vacancy-upload">Загрузить вакансию</label>
+    </p>
+    <p>
+        <button id="start-btn">Запустить запись ответа</button>
+        <div id="recording-status">Запись ведётся...</div>
     </p>
     <audio controls autoplay></audio>
 
     <script src="/static/app.js"></script>
+    <script>
+        let pollingInterval = null;
+        let state = 'new';
+
+        // Функция для получения вопроса
+        async function getQuestion() {
+            try {
+                const response = await fetch('/get_greeting', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ state })
+                });
+
+                if (!response.ok) throw new Error('Не удалось получить вопрос');
+
+                const data = await response.json();
+                state = ''
+                if (data.state === 'new') {
+                    // Обработка аудио
+                    const audioBlob = base64ToBlob(data.wav, 'audio/wav');
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audioElement = document.querySelector('audio');
+                    audioElement.src = audioUrl;
+                    audioElement.play();
+
+                    // Добавление вопроса в список
+                    const questionList = document.getElementById('question-list');
+                    const item = document.createElement('div');
+                    item.className = 'question-item';
+                    item.textContent = data.question;
+                    questionList.appendChild(item);
+                } else if (data.state === 'wait') {
+                    // Просто ждём и повторяем запрос
+                    console.log('Ожидание...');
+                }
+            } catch (error) {
+                console.error('Ошибка получения вопроса:', error);
+                alert('Ошибка: Не удалось получить вопрос');
+            }
+        }
+
+        // Преобразование base64 в Blob
+        function base64ToBlob(base64, mimeType) {
+            const byteString = atob(base64);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeType });
+        }
+
+        // Начать опрос сервера
+        function startPolling() {
+                getQuestion(state);
+            };
+
+            pollingInterval = setInterval(() => {
+                    getQuestion(state);
+            }, 5000); // Повтор каждые 5 секунд
+        }
+
+        // Инициализация при загрузке страницы
+        window.addEventListener('load', () => {
+            state = 'new';
+            startPolling();
+        });
+    </script>
 </body>
 </html>
