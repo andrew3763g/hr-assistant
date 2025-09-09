@@ -1,0 +1,11 @@
+* text=auto
+*.py   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+
+# двоичные
+*.docx binary
+*.rtf  binary
+*.pdf  binary
+*.zip  binary
+*.enc  binary
