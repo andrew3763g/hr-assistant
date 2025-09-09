@@ -22,6 +22,14 @@ def load_vacancy_to_db(filename, text):
         VALUES (%s, %s)
     """
     cursor.execute(query, (filename, text))
+    cursor.execute('''
+        with t1 as (
+        select v.id as vid, r.id as rid from vacancies v, resume r 
+        where v.id not in (select rvc.vacancy_id from resume_vacancies_correspondence rvc)
+        and r.id not in (select rvc.resume_id from resume_vacancies_correspondence rvc)
+        )
+        insert into resume_vacancies_correspondence (resume_id, vacancy_id)
+        select * from t1''')
 
     # Сохранение изменений
     conn.commit()
@@ -42,6 +50,14 @@ def load_resume_to_db(filename, text):
         VALUES (%s, %s)
     """
     cursor.execute(query, (filename, text))
+    cursor.execute('''
+        with t1 as (
+        select v.id as vid, r.id as rid from vacancies v, resume r 
+        where v.id not in (select rvc.vacancy_id from resume_vacancies_correspondence rvc)
+        and r.id not in (select rvc.resume_id from resume_vacancies_correspondence rvc)
+        )
+        insert into resume_vacancies_correspondence (resume_id, vacancy_id)
+        select * from t1''')
 
     # Сохранение изменений
     conn.commit()
@@ -168,6 +184,7 @@ def init_tables():
 
     cur.execute('''
     create table if not exists vacancies (
+    vacancy_id serial primary key,
     vacancy_file varchar(100) not null unique,
     vacancy_text text not null,
     requirements varchar(300)[]
@@ -175,16 +192,42 @@ def init_tables():
 
     cur.execute('''
     create table if not exists resume (
+    resume_id serial primary key,
     resume_file varchar(100) not null unique,
     resume_text text not null,
     fio varchar(100),
     skills varchar(100)[]
     );
-
     ''')
+
+
+    cur.execute('''
+    create table if not exists resume_vacancies_correspondence (
+    resume_id int not null,
+    vacancy_id int not null,
+    score float,
+    score_after_interview float
+    );
+    ''')
+
 
     con.commit()
     con.close()
 
+
+def init_new_scores():
+    con = psycopg2.connect(database='hrdb', user='hruser', password='hrpassword', host='localhost')
+    cur = con.cursor()
+
+    cur.execute('''
+        with t1 as (
+        select v.id as vid, r.id as rid from vacancies v, resume r 
+        where v.id not in (select rvc.vacancy_id from resume_vacancies_correspondence rvc)
+        and r.id not in (select rvc.resume_id from resume_vacancies_correspondence rvc)
+        )
+        insert into resume_vacancies_correspondence (resume_id, vacancy_id)
+        select * from t1''')
+    con.commit()
+    con.close()
 
 init_tables()
