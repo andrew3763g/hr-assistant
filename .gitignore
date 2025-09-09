@@ -2,3 +2,5 @@
 
 service_account.json
 ai-hr-assistant-471010-1279c201a901.json
+__pycache__/
+*.py[cod]
