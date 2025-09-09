@@ -98,3 +98,93 @@ def get_messages_by_uuid_and_state(uuid):
     conn.close()
 
     return messages
+
+def get_all_vacancies():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = "SELECT vacancy_file FROM vacancies"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return rows
+
+
+def get_all_resumes():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = "SELECT resume_file FROM resume"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return rows
+
+
+def delete_resume_by_file(resume_file):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = "DELETE FROM resume WHERE resume_file = %s"
+    cursor.execute(query, (resume_file,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+
+def delete_vacancy_by_file(vacancy_file):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = "DELETE FROM vacancies WHERE vacancy_file = %s"
+    cursor.execute(query, (vacancy_file,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+
+def init_tables():
+    con = psycopg2.connect(database='hrdb', user='hruser', password='hrpassword', host='localhost')
+    cur = con.cursor()
+
+    cur.execute('''
+    create table if not exists interviews
+    (
+    uuid varchar(100) not null,
+    message text not null,
+    date timestamp default now(),
+    vacancy varchar(100) not null,
+    resume varchar(100) not null,
+    state varchar(100) default 'created'
+    )    ''')
+
+    cur.execute('''
+    create table if not exists vacancies (
+    vacancy_file varchar(100) not null unique,
+    vacancy_text text not null,
+    requirements varchar(300)[]
+    ); ''')
+
+    cur.execute('''
+    create table if not exists resume (
+    resume_file varchar(100) not null unique,
+    resume_text text not null,
+    fio varchar(100),
+    skills varchar(100)[]
+    );
+
+    ''')
+
+    con.commit()
+    con.close()
+
+
+init_tables()

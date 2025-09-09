@@ -131,3 +131,140 @@ document.getElementById('vacancy-upload').addEventListener('change', function(ev
         event.target.value = '';
     }
 });
+
+async function getGreeting() {
+    try {
+        const response = await fetch('/get_greeting', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ state })
+        });
+
+        if (!response.ok) throw new Error('Не удалось получить вопрос');
+
+        const data = await response.json();
+        state = '';
+        if (data.state === 'new') {
+            const audioBlob = base64ToBlob(data.wav, 'audio/wav');
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audioElement = document.querySelector('audio');
+            audioElement.src = audioUrl;
+            audioElement.play();
+
+            const questionList = document.getElementById('question-list');
+            const item = document.createElement('div');
+            item.className = 'question-item';
+            item.textContent = data.question;
+            questionList.appendChild(item);
+        } else if (data.state === 'wait') {
+            console.log('Ожидание...');
+        }
+    } catch (error) {
+        console.error('Ошибка получения вопроса:', error);
+        alert('Ошибка: Не удалось получить вопрос');
+    }
+}
+// Загрузка списка резюме
+async function loadResumes() {
+    const resumeList = document.getElementById('resume-list');
+    resumeList.innerHTML = 'Загрузка...';
+
+    try {
+        const response = await fetch('/get_resumes');
+        const resumes = await response.json();
+
+        resumeList.innerHTML = '';
+        resumes.forEach(resume => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+
+            const span = document.createElement('span');
+            span.textContent = resume.resume_file || 'Без имени';
+
+            const btn = document.createElement('button');
+            btn.textContent = 'Удалить';
+            btn.style.marginLeft = '10px';
+            btn.onclick = () => deleteResume(resume.resume_file);
+
+            div.appendChild(span);
+            div.appendChild(btn);
+            resumeList.appendChild(div);
+        });
+    } catch (error) {
+        resumeList.innerHTML = 'Ошибка загрузки резюме.';
+        console.error(error);
+    }
+}
+
+// Загрузка списка вакансий
+async function loadVacancies() {
+    const vacancyList = document.getElementById('vacancy-list');
+    vacancyList.innerHTML = 'Загрузка...';
+
+    try {
+        const response = await fetch('/get_vacancies');
+        const vacancies = await response.json();
+
+        vacancyList.innerHTML = '';
+        vacancies.forEach(vacancy => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+
+            const span = document.createElement('span');
+            span.textContent = vacancy.vacancy_file || 'Без имени';
+
+            const btn = document.createElement('button');
+            btn.textContent = 'Удалить';
+            btn.style.marginLeft = '10px';
+            btn.onclick = () => deleteVacancy(vacancy.vacancy_file);
+
+            div.appendChild(span);
+            div.appendChild(btn);
+            vacancyList.appendChild(div);
+        });
+    } catch (error) {
+        vacancyList.innerHTML = 'Ошибка загрузки вакансий.';
+        console.error(error);
+    }
+}
+async function deleteResume(id) {
+    if (!confirm('Вы уверены, что хотите удалить это резюме?')) return;
+
+    try {
+        const response = await fetch(`/delete_resume/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Резюме удалено.');
+            loadResumes(); // Перезагружаем список
+        } else {
+            alert('Ошибка удаления резюме.');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+async function deleteVacancy(id) {
+    if (!confirm('Вы уверены, что хотите удалить эту вакансию?')) return;
+
+    try {
+        const response = await fetch(`/delete_vacancy/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Вакансия удалена.');
+            loadVacancies(); // Перезагружаем список
+        } else {
+            alert('Ошибка удаления вакансии.');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+// Преобразование base64 в Blob
+function base64ToBlob(base64, mimeType) {
+    const byteString = atob(base64);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeType });
+}

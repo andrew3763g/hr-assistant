@@ -6,25 +6,65 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
+            margin: 0;
+            padding: 0;
         }
+
+        header {
+            text-align: center;
+            background-color: #f5f5f5;
+            padding: 20px 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #f9f9f9;
+            border-right: 1px solid #ccc;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+        }
+
+        .list-item {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
         button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
             margin: 10px;
         }
+
         input[type="file"] {
             margin: 10px;
         }
+
         #recording-status {
             color: red;
             display: none;
         }
+
         .question-list {
             margin-top: 30px;
         }
+
         .question-item {
             background-color: #f0f0f0;
             padding: 10px;
@@ -34,97 +74,66 @@
     </style>
 </head>
 <body>
-    <h1>HR bot</h1>
-    <h2>Admin panel</h2>
-    <p>
-        <img src="/static/face.gif">
-    </p>
+    <header>
+        <h1>HR bot</h1>
+        <h2>Admin panel</h2>
+        <p><img src="/static/face.gif" alt="Bot face"></p>
+    </header>
 
-    <!-- Список вопросов -->
-    <div class="question-list" id="question-list"></div>
+    <div class="container">
+        <!-- Левая панель -->
+        <div class="sidebar">
+            <h3>Загруженные файлы</h3>
 
-    <p>
-        <input type="file" id="resume-upload" accept=".pdf,.doc,.docx">
-        <label for="resume-upload">Загрузить резюме</label>
-    </p>
-    <p>
-        <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx">
-        <label for="vacancy-upload">Загрузить вакансию</label>
-    </p>
-    <p>
-        <button id="start-btn">Запустить запись ответа</button>
-        <div id="recording-status">Запись ведётся...</div>
-    </p>
-    <audio controls autoplay></audio>
+            <h4>Резюме</h4>
+            <div id="resume-list" class="resume-list"></div>
+
+            <h4>Вакансии</h4>
+            <div id="vacancy-list" class="vacancy-list"></div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="main-content">
+            <input type="file" id="resume-upload" accept=".pdf,.doc,.docx">
+            <label for="resume-upload">Загрузить резюме</label>
+
+            <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx">
+            <label for="vacancy-upload">Загрузить вакансию</label>
+
+            <button id="start-btn">Запустить запись ответа</button>
+            <div id="recording-status">Запись ведётся...</div>
+
+            <div class="question-list" id="question-list"></div>
+
+            <audio controls autoplay></audio>
+        </div>
+    </div>
 
     <script src="/static/app.js"></script>
     <script>
         let pollingInterval = null;
         let state = 'new';
 
-        // Функция для получения вопроса
-        async function getQuestion() {
-            try {
-                const response = await fetch('/get_greeting', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ state })
-                });
 
-                if (!response.ok) throw new Error('Не удалось получить вопрос');
-
-                const data = await response.json();
-                state = ''
-                if (data.state === 'new') {
-                    // Обработка аудио
-                    const audioBlob = base64ToBlob(data.wav, 'audio/wav');
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audioElement = document.querySelector('audio');
-                    audioElement.src = audioUrl;
-                    audioElement.play();
-
-                    // Добавление вопроса в список
-                    const questionList = document.getElementById('question-list');
-                    const item = document.createElement('div');
-                    item.className = 'question-item';
-                    item.textContent = data.question;
-                    questionList.appendChild(item);
-                } else if (data.state === 'wait') {
-                    // Просто ждём и повторяем запрос
-                    console.log('Ожидание...');
-                }
-            } catch (error) {
-                console.error('Ошибка получения вопроса:', error);
-                alert('Ошибка: Не удалось получить вопрос');
-            }
-        }
-
-        // Преобразование base64 в Blob
-        function base64ToBlob(base64, mimeType) {
-            const byteString = atob(base64);
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            return new Blob([ab], { type: mimeType });
-        }
 
         // Начать опрос сервера
         function startPolling() {
-                getQuestion(state);
-            };
-
+            getQuestion(state);
             pollingInterval = setInterval(() => {
-                    getQuestion(state);
+                loadResumes();
+                loadVacancies();
             }, 5000); // Повтор каждые 5 секунд
         }
 
         // Инициализация при загрузке страницы
         window.addEventListener('load', () => {
             state = 'new';
+            audio.hidden = true;
             startPolling();
+            loadResumes();
+            loadVacancies();
         });
+
     </script>
 </body>
 </html>

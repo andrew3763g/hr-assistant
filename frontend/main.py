@@ -17,6 +17,33 @@ def allowed_file(filename):
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS_DOCS
 
 
+@app.route('/get_vacancies', methods=['GET'])
+def get_vacancies():
+    # Получаем все вакансии из БД
+    vacancies = db_utils.get_all_vacancies()
+
+    if not vacancies:
+        return jsonify({'error': 'No vacancies found'}), 404
+
+    # Формируем список с полями filename
+    vacancy_list = [{'vacancy_file': v[0]} for v in vacancies]
+    print(vacancy_list)
+    return jsonify(vacancy_list)
+
+
+@app.route('/get_resumes', methods=['GET'])
+def get_resumes():
+    # Получаем все резюме из БД
+    resumes = db_utils.get_all_resumes()
+
+    if not resumes:
+        return jsonify({'error': 'No resumes found'}), 404
+
+    # Формируем список с полями filename
+    resume_list = [{'resume_file': r[0]} for r in resumes]
+    print(resume_list)
+    return jsonify(resume_list)
+
 @app.route('/')
 def home():
     return render_template('index2.html')
@@ -73,17 +100,7 @@ def load_all_resumes_to_db():
             resume_path = os.path.join('resume', filename)
             resume_text = open(resume_path).read()
             db_utils.load_resume_to_db(filename, resume_text)
-            '''удалить файл резюме'''
-            os.remove(resume_path)
 
-    ''' очистка каталога resume и resume_raw'''
-    for filename in os.listdir('resume_raw'):
-        resume_path = os.path.join('resume_raw', filename)
-        os.remove(resume_path)
-
-    for filename in os.listdir('resume'):
-        resume_path = os.path.join('resume', filename)
-        os.remove(resume_path)
 
 def load_all_vacancies_to_db():
     for filename in os.listdir('vacancy'):
@@ -91,8 +108,6 @@ def load_all_vacancies_to_db():
             vacancy_path = os.path.join('vacancy', filename)
             vacancy_text = open(vacancy_path).read()
             db_utils.load_vacancy_to_db(filename, vacancy_text)
-            '''удалить файл резюме'''
-            os.remove(vacancy_path)
 
     
 @app.route('/upload/resume', methods=['POST'])
@@ -115,6 +130,9 @@ def resume_upload():
         os.system(f'java -jar tika-app-3.2.2.jar -t -i resume_raw -o resume')
         print(f'Resume {filename} uploaded.')
         load_all_resumes_to_db()
+        os.system(f'rm -f resume_raw/*')
+        os.system(f'rm -f resume/*')
+
         return jsonify({'message': f'Резюме загружено: {filename}'}), 200
     else:
         print('Invalid file type')
@@ -141,6 +159,8 @@ def vacancy_upload():
         os.system(f'java -jar tika-app-3.2.2.jar -t -i vacancy_raw -o vacancy')
         print(f'Вакансия {filename} загружена. ')
         load_all_vacancies_to_db()
+        os.system(f'rm -f vacancy_raw/*')
+        os.system(f'rm -f vacancy/*')
 
 
         return jsonify({'message': f'Вакансия загружена: {filename}'}), 200
@@ -181,7 +201,7 @@ def get_greeting():
 
     if state == 'new':
         # Здесь можно вызвать LLM, сформировать ответ и преобразовать его в аудио
-        out_text = llm_api.ask_model('Поздоровайся, перед тобой администратор системы. Предложи загрузить файлы вакансий и резюме', '')  # Пример вызова модели
+        out_text = llm_api.ask_model('Поздоровайся, перед тобой администратор системы. Кратко предложи загрузить файлы вакансий и резюме', '')  # Пример вызова модели
         llm_api.text_to_speech(out_text)  # Предположим, функция возвращает путь к файлу
         audio_path = 'output.mp3'
 
@@ -213,6 +233,25 @@ def get_user_conv(uuid):
         'state': 'wait',
         'question': ''
     })
+
+@app.route('/delete_resume/<resume_file>', methods=['DELETE'])
+def delete_resume(resume_file):
+    try:
+        db_utils.delete_resume_by_file(id)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Ошибка удаления резюме: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/delete_vacancy/<vacancy_file>', methods=['DELETE'])
+def delete_vacancy(vacancy_file):
+    try:
+        db_utils.delete_vacancy_by_file(id)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Ошибка удаления вакансии: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
