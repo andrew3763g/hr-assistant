@@ -2,5 +2,7 @@
 
 service_account.json
 ai-hr-assistant-471010-1279c201a901.json
+backend/temp/
+*.enc
 __pycache__/
-*.py[cod]
+*.pyc
