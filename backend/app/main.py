@@ -4,9 +4,41 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uvicorn
 import os
-
+from getpass import getpass
+from backend.app.services.api_key_manager import APIKeyManager
 # Импортируем database компоненты
 from .database import Base, engine
+
+km = APIKeyManager()  # путь по умолчанию: backend/app/temp/api_keys.enc
+
+def ensure_openai_key():
+    # 1) ENV?
+    env = os.getenv("OPENAI_API_KEY")
+    if env:
+        return env
+
+    # 2) Попытка расшифровать?
+    use_enc = input("Use encrypted key file? [y/N]: ").strip().lower() == "y"
+    if use_enc:
+        pp = getpass("Passphrase: ")
+        key = km.get("openai", passphrase=pp)
+        if key:
+            os.environ["OPENAI_API_KEY"] = key
+            return key
+        print("Encrypted store not found or wrong passphrase.")
+
+    # 3) Ввод нового + запись
+    key = getpass("Paste your OpenAI API key (sk-...): ").strip()
+    if not key.startswith("sk-"):
+        print("Looks not like an OpenAI key. Aborting.")
+        return None
+    pp = getpass("Set passphrase to encrypt key: ")
+    km.set("openai", key, passphrase=pp)
+    print("Encrypted and saved. You can commit the .enc file safely.")
+    os.environ["OPENAI_API_KEY"] = key
+    return key
+
+ensure_openai_key()
 
 # Создаем таблицы при старте
 @asynccontextmanager
@@ -119,3 +151,7 @@ async def health_check():
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+    km = APIKeyManager()
+    # только если ключа в ENV нет – попросит и зашифрует
+    if os.getenv("HR_INTERACTIVE_CONFIG", "0") == "1":
+        km.configure_openai_key_interactive()

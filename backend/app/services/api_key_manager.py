@@ -1,51 +1,60 @@
 # backend/app/services/api_key_manager.py
 from __future__ import annotations
-import os
-from typing import Optional, Dict
+import os, json, base64, getpass
+from pathlib import Path
+from typing import Optional
+from cryptography.fernet import Fernet, InvalidToken
 
-try:
-    # settings подхватывает .env через pydantic-settings
-    from backend.app.config import settings  # type: ignore
-except Exception:
-    settings = None  # на случай запуска из alembic и т.п.
+# <-- добавь/поправь дефолтный путь к хранилищу
+DEFAULT_STORE_PATH = Path(__file__).resolve().parents[2] / "temp" / "api_keys.enc"
+
+def _kdf(passphrase: str) -> bytes:
+    # простой KDF для demo (для прод — PBKDF2/Argon2 + salt)
+    key = base64.urlsafe_b64encode(passphrase.encode("utf-8").ljust(32, b"0")[:32])
+    return key
 
 class APIKeyManager:
-    """
-    Мини-менеджер API-ключей.
-    Приоритет: переменные окружения -> settings из .env.
-    Поддерживаем "openai" и "anthropic" (второй можно оставить пустым).
-    """
-    _name_map: Dict[str, tuple[str, ...]] = {
-        "openai": ("OPENAI_API_KEY",),
-        "anthropic": ("ANTHROPIC_API_KEY",),
-    }
+    def __init__(self, store_path: Optional[Path] = None):
+        self.store_path = Path(
+            os.getenv("HR_API_KEY_STORE", store_path or DEFAULT_STORE_PATH)
+        )
 
-    def __init__(self) -> None:
-        self._cache: Dict[str, Optional[str]] = {}
+    def _load(self, passphrase: str) -> dict:
+        if not self.store_path.exists():
+            return {}
+        f = Fernet(_kdf(passphrase))
+        data = f.decrypt(self.store_path.read_bytes())
+        return json.loads(data.decode("utf-8"))
 
-    def get(self, provider: str) -> Optional[str]:
-        provider = provider.lower()
-        if provider in self._cache:
-            return self._cache[provider]
+    def _save(self, obj: dict, passphrase: str) -> None:
+        self.store_path.parent.mkdir(parents=True, exist_ok=True)
+        f = Fernet(_kdf(passphrase))
+        enc = f.encrypt(json.dumps(obj).encode("utf-8"))
+        self.store_path.write_bytes(enc)
 
-        env_names = self._name_map.get(provider, (provider.upper() + "_API_KEY",))
-        value: Optional[str] = None
+    def set(self, provider: str, key: str, passphrase: Optional[str] = None) -> None:
+        pw = passphrase or getpass.getpass("Passphrase for encryption: ")
+        data = self._load(pw)
+        data[provider] = key
+        self._save(data, pw)
 
-        # 1) env
-        for name in env_names:
-            value = os.getenv(name)
-            if value:
-                break
+    def get(self, provider: str, passphrase: Optional[str] = None) -> Optional[str]:
+        if passphrase is None:
+            # интерактивный запрос — чтобы можно было вызывать без ENV
+            pw = os.getenv("OPENAI_KEY_PASSPHRASE") or getpass.getpass(
+                "Passphrase to unlock API keys: "
+            )
+        else:
+            pw = passphrase
+        try:
+            data = self._load(pw)
+            return data.get(provider)
+        except (InvalidToken, ValueError):
+            return None
 
-        # 2) settings.*
-        if not value and settings is not None:
-            for name in env_names:
-                value = getattr(settings, name, None)
-                if value:
-                    break
-
-        self._cache[provider] = value
-        return value
-
-    def has(self, provider: str) -> bool:
-        return bool(self.get(provider))
+    # удобный конфигуратор
+    def configure_openai_key_interactive(self) -> None:
+        key = input("Enter OpenAI API key (sk-...): ").strip()
+        pw  = getpass.getpass("Passphrase for encryption: ")
+        self.set("openai", key, passphrase=pw)
+        print(f"Key stored to: {self.store_path}")

@@ -1,58 +1,53 @@
 from __future__ import annotations
-"""
-Правила оценки (keyword-based) на основе файла data/evaluation_criteria.json.
+from typing import Dict, Any, Iterable
+import math, re
 
-Ожидаемый формат JSON (упрощённо):
-{
-  "criteria": [
-    {"name": "backend", "keywords": ["python","fastapi"], "weight": 2},
-    {"name": "db", "keywords": ["postgres","sql"], "weight": 1}
-  ]
-}
-"""
-from pathlib import Path
-from typing import Any
-import json
-
-from ..config import settings
-
-
-def _load_criteria() -> dict:
+def evaluate_resume(parsed: Dict[str, Any], criteria: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Загружает JSON с критериями. Возвращает {"criteria": [...]}
-    Если файл отсутствует — возвращаем безопасный дефолт.
+    Базовая эвристика: +1 за каждое совпадение скилла, вес за «обязательные»,
+    доп.баллы за языки и опыт.
     """
-    data_dir = Path(getattr(settings, "DATA_DIR", Path(__file__).resolve().parents[1] / "data"))
-    path = data_dir / "evaluation_criteria.json"
-    if not path.exists():
-        return {"criteria": []}
-    with path.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    score = 0.0
+    max_score = 0.0
+    details: list[dict] = []
 
+    skills_need: Iterable[str] = map(str.lower, criteria.get("skills", []))
+    resume_skills: set[str] = set(map(str.lower, parsed.get("skills", [])))
 
-def evaluate_resume(parsed: dict[str, Any]) -> dict[str, Any]:
-    """
-    Простая метрика: считаем количество упоминаний ключевых слов,
-    умножаем на веса по аспектам, суммируем.
-    """
+    # skills
+    for s in skills_need:
+        max_score += 1
+        hit = s in resume_skills
+        if hit:
+            score += 1
+        details.append({"metric": f"skill:{s}", "hit": hit, "weight": 1})
+
+    # languages
+    req_langs = set(map(str.lower, criteria.get("languages", [])))
+    res_langs = set(map(str.lower, parsed.get("languages", [])))
+    if req_langs:
+        max_score += 1
+        hit = bool(req_langs & res_langs)
+        if hit: score += 1
+        details.append({"metric": "languages", "hit": hit, "weight": 1})
+
+    # опыт лет — грубо по регулярке в исходном тексте
     text = (parsed.get("text") or "").lower()
-    cfg = _load_criteria()
-    aspects: list[dict[str, Any]] = []
-    total = 0.0
+    years_req = int(criteria.get("min_years", 0))
+    if years_req:
+        max_score += 1
+        found = 0
+        for m in re.finditer(r"(\d+)\s*(?:год|лет|года)", text):
+            try:
+                found = max(found, int(m.group(1)))
+            except Exception: pass
+        hit = found >= years_req
+        if hit: score += 1
+        details.append({"metric": "years", "hit": hit, "weight": 1, "found": found, "need": years_req})
 
-    for item in cfg.get("criteria", []):
-        name = str(item.get("name") or "unnamed")
-        words = [str(w).lower() for w in (item.get("keywords") or [])]
-        weight = float(item.get("weight") or 1.0)
-
-        hits = 0
-        for w in words:
-            if not w:
-                continue
-            hits += text.count(w)
-
-        score = hits * weight
-        total += score
-        aspects.append({"name": name, "hits": hits, "weight": weight, "score": score})
-
-    return {"total_score": total, "aspects": aspects}
+    return {
+        "score": score,
+        "max_score": max_score,
+        "ratio": (score / max_score) if max_score else 0,
+        "details": details,
+    }

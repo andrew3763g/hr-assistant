@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any, Dict, Optional
-
 from pydantic import Field, model_validator, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -36,7 +35,17 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     # внутри класса Settings(BaseSettings)
+    OPENAI_KEY_PASSPHRASE: str | None = Field(
+        default=None,
+        description="Пароль к зашифрованному хранилищу API-ключей",
+    )
 
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="",  # как у тебя
+        extra="ignore",
+        case_sensitive=False,
+    )
     # --- БД ---
     DATABASE_URL: str = Field(
         default="postgresql+psycopg://hruser:hrpassword@localhost:5432/hrdb",

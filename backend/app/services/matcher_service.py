@@ -1,46 +1,26 @@
 from __future__ import annotations
-"""
-Бэйзлайн-сопоставление кандидата и вакансии.
-Считает Jaccard-сходство по навыкам и языкам и агрегирует в общий балл.
-"""
-from typing import Iterable
+from typing import Dict, Any, Iterable
+import re
 
+def _tokenize(s: str) -> set[str]:
+    return set(re.findall(r"[a-zA-Zа-яА-Я0-9_#+]{2,}", (s or "").lower()))
 
-def _to_set(items: Iterable[str] | None) -> set[str]:
-    return {i.strip().lower() for i in (items or []) if i and i.strip()}
+def match_resume_to_vacancy(parsed: Dict[str, Any], vacancy: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Простой baseline: jaccard по токенам резюме vs. требований вакансии.
+    Также учитываем списки skills/languages, если есть.
+    """
+    resume_text = " ".join([parsed.get("text","")] + parsed.get("skills",[]) + parsed.get("languages",[]))
+    vacancy_text = " ".join([vacancy.get("description","")] + vacancy.get("skills",[]) + vacancy.get("languages",[]))
 
-
-def _jaccard(a: set[str], b: set[str]) -> float:
-    if not a and not b:
-        return 0.0
+    a, b = _tokenize(resume_text), _tokenize(vacancy_text)
     inter = len(a & b)
-    union = len(a | b)
-    return inter / union if union else 0.0
+    union = max(1, len(a | b))
+    jaccard = inter / union
 
-
-def match_candidate_to_vacancy(cand: dict, vac: dict) -> dict:
-    """
-    cand: {"skills": [...], "languages": [...]}
-    vac:  {"skills": [...], "languages": [...]}
-    Возвращает:
-      {"score": float, "details": {"skills": float, "languages": float}}
-    """
-    cs = _to_set(cand.get("skills"))
-    vs = _to_set(vac.get("skills"))
-    cl = _to_set(cand.get("languages"))
-    vl = _to_set(vac.get("languages"))
-
-    s_skills = _jaccard(cs, vs)
-    s_langs = _jaccard(cl, vl)
-
-    # Простое усреднение (можно задать веса позже)
-    score = (s_skills + s_langs) / 2.0
     return {
-        "score": round(score, 4),
-        "details": {
-            "skills": round(s_skills, 4),
-            "languages": round(s_langs, 4),
-            "intersect_skills": sorted(cs & vs),
-            "missing_skills": sorted(vs - cs),
-        },
+        "jaccard": jaccard,
+        "common_tokens": sorted(list((a & b)))[:100],
+        "resume_tokens": len(a),
+        "vacancy_tokens": len(b),
     }
