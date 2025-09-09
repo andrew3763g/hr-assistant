@@ -22,6 +22,15 @@
             color: red;
             display: none;
         }
+        .question-list {
+            margin-top: 30px;
+        }
+        .question-item {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -29,6 +38,10 @@
     <p>
         <img src="/static/face.gif">
     </p>
+
+    <!-- Список вопросов -->
+    <div class="question-list" id="question-list"></div>
+
     <p>
         <input type="file" id="resume-upload" accept=".pdf,.doc,.docx">
         <label for="resume-upload">Загрузить резюме</label>
@@ -38,14 +51,15 @@
         <label for="vacancy-upload">Загрузить вакансию</label>
     </p>
     <p>
-        <button id="start-btn">Запустить запись</button>
-        <button id="stop-btn" disabled>Остановить запись</button>
-        <div id="recording-status"></div>
+        <button id="start-btn">Запустить запись ответа</button>
+        <div id="recording-status">Запись ведётся...</div>
     </p>
     <audio controls autoplay></audio>
 
     <script src="/static/app.js"></script>
     <script>
+        let pollingInterval = null;
+
         // Функция для получения state
         async function fetchState() {
             try {
@@ -73,12 +87,24 @@
 
                 const data = await response.json();
 
-                // Обработка аудио
-                const audioBlob = base64ToBlob(data.audio_data, 'audio/wav');
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audioElement = document.querySelector('audio');
-                audioElement.src = audioUrl;
-                audioElement.play();
+                if (data.state === 'new') {
+                    // Обработка аудио
+                    const audioBlob = base64ToBlob(data.wav, 'audio/wav');
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audioElement = document.querySelector('audio');
+                    audioElement.src = audioUrl;
+                    audioElement.play();
+
+                    // Добавление вопроса в список
+                    const questionList = document.getElementById('question-list');
+                    const item = document.createElement('div');
+                    item.className = 'question-item';
+                    item.textContent = data.question;
+                    questionList.appendChild(item);
+                } else if (data.state === 'wait') {
+                    // Просто ждём и повторяем запрос
+                    console.log('Ожидание...');
+                }
             } catch (error) {
                 console.error('Ошибка получения вопроса:', error);
                 alert('Ошибка: Не удалось получить вопрос');
@@ -96,11 +122,22 @@
             return new Blob([ab], { type: mimeType });
         }
 
+        // Начать опрос сервера
+        function startPolling() {
+            fetchState().then(state => {
+                getQuestion(state);
+            });
+
+            pollingInterval = setInterval(() => {
+                fetchState().then(state => {
+                    getQuestion(state);
+                });
+            }, 5000); // Повтор каждые 5 секунд
+        }
+
         // Инициализация при загрузке страницы
         window.addEventListener('load', () => {
-            fetchState().then(state => {
-                if (state) getQuestion(state);
-            });
+            startPolling();
         });
     </script>
 </body>

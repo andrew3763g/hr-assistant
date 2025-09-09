@@ -4,19 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/frontend/templates/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/templates/plan_interview.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/vacancy/vak3.txt" afterDir="false" />
+    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="Added functionality loading resume/vacancy document.">
+      <change afterPath="$PROJECT_DIR$/frontend/conversation_sequence.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/db_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/llm_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/llm_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/static/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/static/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/templates/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/templates/index2.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/templates/index2.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -41,17 +48,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.llm_api.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "llm__interaction__v0",
-    "last_opened_file_path": "/home/serj/big/venv/hr-assistant/frontend/templates"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.conversation_sequence.executor&quot;: &quot;Run&quot;,
+    &quot;Python.llm_api.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;llm__interaction__v0&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/serj/big/venv/hr-assistant/frontend/templates&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/frontend/templates" />
@@ -73,6 +81,19 @@
       <option name="presentableId" value="Default" />
       <updated>1756045171481</updated>
     </task>
+    <task id="LOCAL-00001" summary="Added functionality loading resume/vacancy document.">
+      <option name="closed" value="true" />
+      <created>1757019879588</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1757019879588</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added functionality loading resume/vacancy document." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added functionality loading resume/vacancy document." />
   </component>
 </project>

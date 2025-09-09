@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from pydub import AudioSegment
 import base64
 import llm_api
-import db_utils
+
 
 ALLOWED_EXTENSIONS = {'wav', 'mp3'}
 ALLOWED_EXTENSIONS_DOCS = {'doc', 'pdf', 'docx','txt', 'rtf'}
@@ -64,37 +64,6 @@ def convert_webm_to_wav(input_path, output_path):
     audio.export(output_path, format="wav")
 
 
-
-
-def load_all_resumes_to_db():
-    '''загрузка всех резюме каталога resume в базу'''
-    for filename in os.listdir('resume'):
-        if filename.endswith('.txt'):
-            resume_path = os.path.join('resume', filename)
-            resume_text = open(resume_path).read()
-            db_utils.add_resume_to_db(filename, resume_text)
-            '''удалить файл резюме'''
-            os.remove(resume_path)
-
-    ''' очистка каталога resume и resume_raw'''
-    for filename in os.listdir('resume_raw'):
-        resume_path = os.path.join('resume_raw', filename)
-        os.remove(resume_path)
-
-    for filename in os.listdir('resume'):
-        resume_path = os.path.join('resume', filename)
-        os.remove(resume_path)
-
-def load_all_vacancies_to_db():
-    for filename in os.listdir('vacancy'):
-        if filename.endswith('.txt'):
-            vacancy_path = os.path.join('vacancy', filename)
-            vacancy_text = open(vacancy_path).read()
-            db_utils.add_vacancy_to_db(filename, vacancy_text)
-            '''удалить файл резюме'''
-            os.remove(vacancy_path)
-
-    
 @app.route('/upload/resume', methods=['POST'])
 def resume_upload():
     if 'resume-upload' not in request.files:
@@ -111,16 +80,11 @@ def resume_upload():
         filename = secure_filename(file.filename)
         filepath = os.path.join('resume_raw', filename)
         file.save(filepath)
-        # convert to text
-        os.system(f'java -jar tika-app-3.2.2.jar -t resume_raw resume')
         print('Resume uploaded.')
         return jsonify({'message': f'Резюме загружено: {filename}'}), 200
     else:
         print('Invalid file type')
         return jsonify({'error': 'Invalid file type'}), 400
-
-
-
 
 
 @app.route('/upload/vacancy', methods=['POST'])
@@ -137,8 +101,6 @@ def vacancy_upload():
         filename = secure_filename(file.filename)
         filepath = os.path.join('vacancy_raw', filename)
         file.save(filepath)
-
-
         return jsonify({'message': f'Вакансия загружена: {filename}'}), 200
     else:
         return jsonify({'error': 'Invalid file type'}), 400
@@ -166,31 +128,8 @@ def get_question():
         encoded_audio = base64.b64encode(f.read()).decode('utf-8')
 
     return jsonify({
-        'wav': encoded_audio,
-        'state': 'new',
-        'question': out_text
-    })
-
-@app.route('/get_greeting', methods=['POST'])
-def get_question():
-    data = request.get_json()
-    state = data.get('state')
-
-    if not state:
-        return jsonify({'error': 'Missing "state" parameter'}), 400
-
-    # Здесь можно вызвать LLM, сформировать ответ и преобразовать его в аудио
-    out_text = llm_api.ask_model('Поздоровайся, перед тобой администратор системы', '')  # Пример вызова модели
-    llm_api.text_to_speech(out_text)  # Предположим, функция возвращает путь к файлу
-    audio_path = 'output.mp3'
-
-    with open(audio_path, 'rb') as f:
-        encoded_audio = base64.b64encode(f.read()).decode('utf-8')
-
-    return jsonify({
-        'wav': encoded_audio,
-        'state': 'new',
-        'question': out_text
+        'audio_data': encoded_audio,
+        'message': 'Вопрос получен'
     })
 
 

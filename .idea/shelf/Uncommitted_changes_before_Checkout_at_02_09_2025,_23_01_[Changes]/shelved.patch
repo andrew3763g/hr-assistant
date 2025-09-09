@@ -1,0 +1,45 @@
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"AutoImportSettings\">\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\n  </component>\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"23be7db0-8f73-44af-b100-00f72469667a\" name=\"Changes\" comment=\"frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy.\">\n      <change beforePath=\"$PROJECT_DIR$/frontend/llm_api.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/frontend/llm_api.py\" afterDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"FileTemplateManagerImpl\">\n    <option name=\"RECENT_TEMPLATES\">\n      <list>\n        <option value=\"HTML File\" />\n        <option value=\"Python Script\" />\n      </list>\n    </option>\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\n      <map>\n        <entry key=\"$PROJECT_DIR$\" value=\"master\" />\n      </map>\n    </option>\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"GitHubPullRequestSearchHistory\">{\n  &quot;lastFilter&quot;: {\n    &quot;state&quot;: &quot;OPEN&quot;,\n    &quot;assignee&quot;: &quot;serser152&quot;\n  }\n}</component>\n  <component name=\"GithubPullRequestsUISettings\">{\n  &quot;selectedUrlAndAccountId&quot;: {\n    &quot;url&quot;: &quot;https://github.com/andrew3763g/hr-assistant.git&quot;,\n    &quot;accountId&quot;: &quot;dc9c7be5-e92e-49bc-a6a7-8c22e0f92e52&quot;\n  }\n}</component>\n  <component name=\"ProjectColorInfo\">{\n  &quot;associatedIndex&quot;: 7\n}</component>\n  <component name=\"ProjectId\" id=\"31jl4Wn3mLyOUuxqy8SEtB7f1FU\" />\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\"><![CDATA[{\n  \"keyToString\": {\n    \"DefaultHtmlFileTemplate\": \"HTML File\",\n    \"ModuleVcsDetector.initialDetectionPerformed\": \"true\",\n    \"Python.llm_api.executor\": \"Run\",\n    \"Python.main.executor\": \"Run\",\n    \"Python.parse_documents.executor\": \"Run\",\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\n    \"RunOnceActivity.git.unshallow\": \"true\",\n    \"git-widget-placeholder\": \"llm__interaction__v0\",\n    \"last_opened_file_path\": \"/home/serj/Загрузки/gigacode-jetbrains-25.8.643.zip\",\n    \"settings.editor.selected.configurable\": \"preferences.pluginManager\"\n  }\n}]]></component>\n  <component name=\"RecentsManager\">\n    <key name=\"MoveFile.RECENT_KEYS\">\n      <recent name=\"$PROJECT_DIR$/frontend/static\" />\n      <recent name=\"$PROJECT_DIR$/frontend/templates\" />\n      <recent name=\"$PROJECT_DIR$/frontend\" />\n    </key>\n  </component>\n  <component name=\"SharedIndexes\">\n    <attachedChunks>\n      <set>\n        <option value=\"bundled-python-sdk-495700d161d3-aa17d162503b-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-243.22562.220\" />\n      </set>\n    </attachedChunks>\n  </component>\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"23be7db0-8f73-44af-b100-00f72469667a\" name=\"Changes\" comment=\"\" />\n      <created>1756045171481</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1756045171481</updated>\n    </task>\n    <task id=\"LOCAL-00001\" summary=\"frontend v0 only translate\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1756759358282</created>\n      <option name=\"number\" value=\"00001\" />\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1756759358282</updated>\n    </task>\n    <task id=\"LOCAL-00002\" summary=\"frontend v0 only translate\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1756759714767</created>\n      <option name=\"number\" value=\"00002\" />\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1756759714767</updated>\n    </task>\n    <task id=\"LOCAL-00003\" summary=\"frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy.\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1756842033652</created>\n      <option name=\"number\" value=\"00003\" />\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1756842033652</updated>\n    </task>\n    <option name=\"localTasksCounter\" value=\"4\" />\n    <servers />\n  </component>\n  <component name=\"VcsManagerConfiguration\">\n    <MESSAGE value=\"frontend v0 only translate\" />\n    <MESSAGE value=\"frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy.\" />\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy.\" />\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 20d5c127ba807d19f4e6b39f1b019d45e8bdc047)
++++ b/.idea/workspace.xml	(date 1756843240255)
+@@ -4,7 +4,8 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy.">
++    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="frontend v1. Fix llm skills check test function">
++      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/frontend/llm_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/llm_api.py" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+@@ -109,12 +110,21 @@
+       <option name="project" value="LOCAL" />
+       <updated>1756842033652</updated>
+     </task>
+-    <option name="localTasksCounter" value="4" />
++    <task id="LOCAL-00004" summary="frontend v1. Fix llm skills check test function">
++      <option name="closed" value="true" />
++      <created>1756842465254</created>
++      <option name="number" value="00004" />
++      <option name="presentableId" value="LOCAL-00004" />
++      <option name="project" value="LOCAL" />
++      <updated>1756842465254</updated>
++    </task>
++    <option name="localTasksCounter" value="5" />
+     <servers />
+   </component>
+   <component name="VcsManagerConfiguration">
+     <MESSAGE value="frontend v0 only translate" />
+     <MESSAGE value="frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy." />
+-    <option name="LAST_COMMIT_MESSAGE" value="frontend v1. Added converter documents-&gt;txt. Added an example using LLM to extract info from the resume and vacancy." />
++    <MESSAGE value="frontend v1. Fix llm skills check test function" />
++    <option name="LAST_COMMIT_MESSAGE" value="frontend v1. Fix llm skills check test function" />
+   </component>
+ </project>
+\ No newline at end of file
