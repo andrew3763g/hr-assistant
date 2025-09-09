@@ -2,3 +2,17 @@
 
 service_account.json
 ai-hr-assistant-471010-1279c201a901.json
+__pycache__/
+*.pyc
+# Secrets / tokens / local
+.env
+backend/app/temp/*.enc
+backend/app/data/*service_account*.json
+
+# Runtime & local artifacts
+temp/
+backend/temp/
+
+# Входящие документы, если это «рабочая» папка
+inbox/
+# Secrets / tokens
