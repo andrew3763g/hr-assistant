@@ -54,7 +54,7 @@
     <script>
         let pollingInterval = null;
         let state = 'new';
-        const audioElement = document.querySelector('audio');
+        // const audioElement = document.querySelector('audio');
         const uuidInput = document.getElementById('session-uuid');
         const uuid = uuidInput.value;
 
@@ -145,9 +145,12 @@
         // Функция для получения вопроса
         async function getQuestion(state) {
             // если плеер находится в состоянии проигрывания, то выходим
-            if (!audioElement.paused) {
+            if (audioPlayer.paused == false) {
+                console.log('Плеер проигрывает аудио');
                 return;
-                }
+            } else {
+                console.log('Плеер не проигрывает аудио');
+            }
 
             try {
                 const response = await fetch(`/get_question/${uuid}`, {

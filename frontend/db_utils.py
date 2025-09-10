@@ -69,6 +69,8 @@ def load_resume_to_db(filename, text):
 def add_uuid_message_to_db(uuid, message=''):
     print('add_uuid_message_to_db',uuid,message)
     res=get_messages_by_uuid_and_state(uuid,'init')
+    if len(res)==0:
+        res=get_messages_by_uuid_and_state(uuid,'inited')
     row=res[0]
     vacancy=row['vacancy']
     resume=row['resume']
