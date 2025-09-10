@@ -5,28 +5,41 @@
     <title>HR bot Admin panel</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #f9f9f9;
         }
 
         header {
+            background-color: #4a90e2;
+            color: white;
             text-align: center;
-            background-color: #f5f5f5;
             padding: 20px 0;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header h2 {
+            margin: 5px 0 0;
+            font-size: 16px;
         }
 
         .container {
             display: flex;
-            flex-direction: row;
-            height: calc(100vh - 80px);
+            height: calc(100vh - 100px);
+            overflow: hidden;
         }
 
         .sidebar {
             width: 300px;
-            background-color: #f9f9f9;
-            border-right: 1px solid #ccc;
+            background-color: #ffffff;
+            border-right: 1px solid #ddd;
             padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
             overflow-y: auto;
         }
 
@@ -34,43 +47,24 @@
             flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
+            background-color: #f9f9f9;
         }
 
-        .sidebar h3 {
-            margin-top: 0;
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
         }
 
         .list-item {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
         }
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px;
-        }
-
-        input[type="file"] {
-            margin: 10px;
-        }
-
-        #recording-status {
-            color: red;
-            display: none;
-        }
-
-        .question-list {
-            margin-top: 30px;
-        }
-
-        .question-item {
-            background-color: #f0f0f0;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
         .delete-btn {
             background: none;
             border: none;
@@ -85,56 +79,125 @@
             text-decoration: underline;
         }
 
-        .list-item {
+        .controls {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 5px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
         }
-        #min-percent {
-        width: 60px;
-        padding: 5px;
-}
+
+        .controls label {
+            margin-right: 5px;
+        }
+
+        .controls input[type="file"] {
+            padding: 5px;
+        }
+
+        .question-list {
+            margin-top: 30px;
+        }
+
+        .question-item {
+            background-color: #eef;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #4a90e2;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .settings {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .settings label {
+            font-weight: bold;
+        }
+
+        .settings input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .settings button {
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .settings button:hover {
+            background-color: #357ab8;
+        }
+
+        img {
+            width: 50px;
+            height: 50px;
+        }
+        .interview-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>HR bot</h1>
         <h2>Admin panel</h2>
-        <p><img src="/static/face.gif" alt="Bot face"  width="50" height="50"></p>
+        <p><img src="/static/face.gif" alt="Bot face"></p>
     </header>
 
     <div class="container">
         <!-- Левая панель -->
         <div class="sidebar">
-            <h3>Загруженные файлы</h3>
+            <div class="section-title">Загруженные файлы</div>
 
-            <h4>Резюме</h4>
-            <div id="resume-list" class="resume-list"></div>
+            <div class="section-title">Резюме</div>
+            <div id="resume-list" class="resume-list">Загрузка...</div>
 
-            <h4>Вакансии</h4>
-            <div id="vacancy-list" class="vacancy-list"></div>
+            <div class="section-title">Вакансии</div>
+            <div id="vacancy-list" class="vacancy-list">Загрузка...</div>
         </div>
 
         <!-- Основной контент -->
         <div class="main-content">
-            <label for="resume-upload">Загрузить резюме</label>
-            <input type="file" id="resume-upload" accept=".pdf,.doc,.docx,.txt,.rtf">
-            <p>
-            <label for="vacancy-upload">Загрузить вакансию</label>
-            <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx,.txt,.rtf">
+            <div class="controls">
+                <label for="resume-upload">Загрузить резюме:</label>
+                <input type="file" id="resume-upload" accept=".pdf,.doc,.docx,.txt,.rtf">
 
+                <label for="vacancy-upload">Загрузить вакансию:</label>
+                <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx,.txt,.rtf">
+            </div>
+            <div class="section-title">Активные интервью</div>
+            <div id="interview-list">
+                Загрузка...
+            </div>
             <div class="question-list" id="question-list"></div>
 
             <audio controls autoplay></audio>
+            <div class="settings">
+                    <label for="min-percent">Минимальный процент соответствия:</label>
+                    <input type="number" id="min-percent" min="0" max="100" step="1" value="70">
+                    <button onclick="saveMinPercent()">Сохранить</button>
+            </div>
         </div>
     </div>
-    <!-- Минимальный процент соответствия -->
-<h4>Настройки</h4>
-<label for="min-percent">Минимальный процент соответствия:</label>
-<input type="number" id="min-percent" min="0" max="100" step="1" value="70">
-<button onclick="saveMinPercent()">Сохранить</button>
 
+    <!-- Настройки -->
     <script>
 let pollingInterval = null;
 let state = 'new';
@@ -145,6 +208,38 @@ const audioPlayer = document.querySelector('audio');
 let mediaRecorder;
 let chunks = [];
 
+// Функция для загрузки активных интервью
+async function loadInterviews() {
+    const interviewList = document.getElementById('interview-list');
+    interviewList.innerHTML = 'Загрузка...';
+
+    try {
+        const response = await fetch('/get_inited_interviews');
+        const interviews = await response.json();
+
+        interviewList.innerHTML = '';
+        if (Array.isArray(interviews) && interviews.length > 0) {
+            interviews.forEach(interview => {
+                const div = document.createElement('div');
+                div.className = 'interview-item';
+
+                const span = document.createElement('span');
+                span.textContent = `url: ${interview.url} (ФИО: ${interview.fio})`;
+
+                div.appendChild(span);
+                interviewList.appendChild(div);
+            });
+        } else {
+            interviewList.innerHTML = 'Нет активных интервью.';
+        }
+    } catch (error) {
+        interviewList.innerHTML = 'Ошибка загрузки интервью.';
+        console.error(error);
+    }
+}
+
+// Автоматическая перезагрузка каждые 20 секунд
+setInterval(loadInterviews, 20000);
 
 // Получение текущего минимального процента из БД
 async function loadMinPercent() {
@@ -388,7 +483,7 @@ window.addEventListener('load', () => {
     loadVacancies();
     getGreeting(state);
     loadMinPercent();
-
+    loadInterviews()
 });
 
     </script>

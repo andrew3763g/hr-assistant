@@ -44,6 +44,22 @@ def get_resumes():
     print(resume_list)
     return jsonify(resume_list)
 
+@app.route('/get_inited_interviews', methods=['GET'])
+def get_inited_interviews():
+
+    interviews = db_utils.get_inited_interviews()
+
+    if not interviews:
+        return jsonify({'error': 'No interview found'}), 404
+
+    # Формируем список с полями filename
+    int_list = [{'url': r[1], 'fio':r[2]} for r in interviews]
+    print(int_list)
+    return jsonify(int_list)
+
+
+
+
 from db_utils import get_connection
 @app.route('/get_min_percent', methods=['GET'])
 def get_min_percent():
@@ -299,4 +315,4 @@ def delete_vacancy(vacancy_file):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)

@@ -94,6 +94,23 @@ def add_uuid_message_to_db(uuid, message=''):
     cursor.close()
     conn.close()
 
+def get_inited_interviews():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # SQL-запрос для получения сообщений
+    query = """
+        SELECT uuid,'http://192.168.31.166:5000/interview/'||uuid as url,r.fio FROM interviews i
+        join resume r on r.id =resume 
+        where state = 'inited'
+        order by fio
+    """
+
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    return rows
+
+
 
 def get_messages_by_uuid_and_state(uuid,state='new'):
     conn = get_connection()
