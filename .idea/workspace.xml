@@ -4,9 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="moved js">
+    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="frontend &lt;-&gt; db interaction">
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_02_09_2025,_23_01_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_02_09_2025__23_01__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/db_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/db_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/output.mp3" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/output.mp3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/templates/index2.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/templates/index2.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tmp/LLM v1.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/LLM v1.ipynb" afterDir="false" />
@@ -46,19 +49,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.conversation_sequence.executor": "Run",
-    "Python.db_utils.executor": "Run",
-    "Python.llm_api.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "llm__interaction__v0",
-    "last_opened_file_path": "/home/serj/big/venv/hr-assistant/frontend/templates/index2.html"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.conversation_sequence.executor&quot;: &quot;Run&quot;,
+    &quot;Python.db_utils.executor&quot;: &quot;Run&quot;,
+    &quot;Python.llm_api.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;llm__interaction__v0&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/serj/big/venv/hr-assistant/frontend/templates/index2.html&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/frontend/templates" />
@@ -104,12 +107,21 @@
       <option name="project" value="LOCAL" />
       <updated>1757437792741</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="frontend &lt;-&gt; db interaction">
+      <option name="closed" value="true" />
+      <created>1757451745901</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1757451745901</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Added functionality loading resume/vacancy document." />
     <MESSAGE value="moved js" />
-    <option name="LAST_COMMIT_MESSAGE" value="moved js" />
+    <MESSAGE value="frontend &lt;-&gt; db interaction" />
+    <option name="LAST_COMMIT_MESSAGE" value="frontend &lt;-&gt; db interaction" />
   </component>
 </project>

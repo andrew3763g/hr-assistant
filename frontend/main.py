@@ -44,6 +44,50 @@ def get_resumes():
     print(resume_list)
     return jsonify(resume_list)
 
+from db_utils import get_connection
+@app.route('/get_min_percent', methods=['GET'])
+def get_min_percent():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT min_percent FROM min_percent LIMIT 1;")
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if result and result[0] is not None:
+            return jsonify({"success": True, "min_percent": result[0]})
+        else:
+            return jsonify({"success": False, "error": "No data found"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/set_min_percent', methods=['POST'])
+def set_min_percent():
+    data = request.get_json()
+    percent = data.get('min_percent')
+
+    if not isinstance(percent, int) or percent < 0 or percent > 100:
+        return jsonify({"success": False, "error": "Invalid percentage value"})
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Если запись не существует — создаём новую
+        cursor.execute("""
+            INSERT INTO min_percent (min_percent)
+            VALUES (%s)
+            ON CONFLICT (id) DO UPDATE SET min_percent = %s;
+        """, (percent, percent))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
 @app.route('/')
 def home():
     return render_template('index2.html')

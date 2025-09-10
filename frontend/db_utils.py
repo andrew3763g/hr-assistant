@@ -177,8 +177,8 @@ def init_tables():
     uuid varchar(100) not null,
     message text not null,
     date timestamp default now(),
-    vacancy varchar(100) not null,
-    resume varchar(100) not null,
+    vacancy text not null,
+    resume text not null,
     state varchar(100) default 'created'
     )    ''')
 
@@ -207,6 +207,14 @@ def init_tables():
     vacancy_id int not null,
     score float,
     score_after_interview float
+    );
+    ''')
+
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS min_percent (
+        id SERIAL PRIMARY KEY,
+        min_percent INT NOT NULL DEFAULT 70
     );
     ''')
 

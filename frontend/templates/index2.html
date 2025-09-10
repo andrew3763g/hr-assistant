@@ -91,6 +91,10 @@
             justify-content: space-between;
             padding: 5px 0;
         }
+        #min-percent {
+        width: 60px;
+        padding: 5px;
+}
     </style>
 </head>
 <body>
@@ -114,10 +118,10 @@
 
         <!-- Основной контент -->
         <div class="main-content">
-            <input type="file" id="resume-upload" accept=".pdf,.doc,.docx">
+            <input type="file" id="resume-upload" accept=".pdf,.doc,.docx,.txt,.rtf">
             <label for="resume-upload">Загрузить резюме</label>
 
-            <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx">
+            <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx,.txt,.rtf">
             <label for="vacancy-upload">Загрузить вакансию</label>
 
             <button id="start-btn">Запустить запись ответа</button>
@@ -128,6 +132,11 @@
             <audio controls autoplay></audio>
         </div>
     </div>
+    <!-- Минимальный процент соответствия -->
+<h4>Настройки</h4>
+<label for="min-percent">Минимальный процент соответствия:</label>
+<input type="number" id="min-percent" min="0" max="100" step="1" value="70">
+<button onclick="saveMinPercent()">Сохранить</button>
 
     <script>
 let pollingInterval = null;
@@ -138,6 +147,48 @@ const recordingStatus = document.getElementById('recording-status');
 const audioPlayer = document.querySelector('audio');
 let mediaRecorder;
 let chunks = [];
+
+
+// Получение текущего минимального процента из БД
+async function loadMinPercent() {
+    try {
+        const response = await fetch('/get_min_percent');
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('min-percent').value = data.min_percent;
+        } else {
+            alert('Ошибка получения минимального процента');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+// Сохранение нового значения в БД
+async function saveMinPercent() {
+    const percent = document.getElementById('min-percent').value;
+    if (!percent || isNaN(percent)) {
+        alert('Пожалуйста, введите корректное число от 0 до 100');
+        return;
+    }
+
+    try {
+        const response = await fetch('/set_min_percent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ min_percent: parseInt(percent) })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Процент соответствия обновлён');
+        } else {
+            alert('Ошибка при сохранении процента');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
 
 // Функция запуска записи
 async function startRecording() {
@@ -420,6 +471,8 @@ window.addEventListener('load', () => {
     loadResumes();
     loadVacancies();
     getGreeting(state);
+    loadMinPercent();
+
 });
 
     </script>
