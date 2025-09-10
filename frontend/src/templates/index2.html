@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HR bot Admin panel</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        header {
+            background-color: #4a90e2;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header h2 {
+            margin: 5px 0 0;
+            font-size: 16px;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 100px);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #ffffff;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: red;
+            font-size: 18px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .delete-btn:hover {
+            color: darkred;
+            text-decoration: underline;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .controls label {
+            margin-right: 5px;
+        }
+
+        .controls input[type="file"] {
+            padding: 5px;
+        }
+
+        .question-list {
+            margin-top: 30px;
+        }
+
+        .question-item {
+            background-color: #eef;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #4a90e2;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .settings {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .settings label {
+            font-weight: bold;
+        }
+
+        .settings input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .settings button {
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .settings button:hover {
+            background-color: #357ab8;
+        }
+
+        img {
+            width: 50px;
+            height: 50px;
+        }
+        .interview-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HR bot</h1>
+        <h2>Admin panel</h2>
+        <p><img src="/static/face.gif" alt="Bot face"></p>
+    </header>
+
+    <div class="container">
+        <!-- Левая панель -->
+        <div class="sidebar">
+            <div class="section-title">Загруженные файлы</div>
+
+            <div class="section-title">Резюме</div>
+            <div id="resume-list" class="resume-list">Загрузка...</div>
+
+            <div class="section-title">Вакансии</div>
+            <div id="vacancy-list" class="vacancy-list">Загрузка...</div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="main-content">
+            <div class="controls">
+                <label for="resume-upload">Загрузить резюме:</label>
+                <input type="file" id="resume-upload" accept=".pdf,.doc,.docx,.txt,.rtf">
+
+                <label for="vacancy-upload">Загрузить вакансию:</label>
+                <input type="file" id="vacancy-upload" accept=".pdf,.doc,.docx,.txt,.rtf">
+            </div>
+            <div class="section-title">Активные интервью</div>
+            <div id="interview-list">
+                Загрузка...
+            </div>
+            <div class="question-list" id="question-list"></div>
+
+            <audio controls autoplay></audio>
+            <div class="settings">
+                    <label for="min-percent">Минимальный процент соответствия:</label>
+                    <input type="number" id="min-percent" min="0" max="100" step="1" value="70">
+                    <button onclick="saveMinPercent()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Настройки -->
+    <script>
+let pollingInterval = null;
+let state = 'new';
+
+
+const recordingStatus = document.getElementById('recording-status');
+const audioPlayer = document.querySelector('audio');
+let mediaRecorder;
+let chunks = [];
+
+// Функция для загрузки активных интервью
+async function loadInterviews() {
+    const interviewList = document.getElementById('interview-list');
+    interviewList.innerHTML = 'Загрузка...';
+
+    try {
+        const response = await fetch('/get_inited_interviews');
+        const interviews = await response.json();
+
+        interviewList.innerHTML = '';
+        if (Array.isArray(interviews) && interviews.length > 0) {
+            interviews.forEach(interview => {
+                const div = document.createElement('div');
+                div.className = 'interview-item';
+
+                const span = document.createElement('span');
+                span.textContent = `url: ${interview.url} (ФИО: ${interview.fio})`;
+
+                div.appendChild(span);
+                interviewList.appendChild(div);
+            });
+        } else {
+            interviewList.innerHTML = 'Нет активных интервью.';
+        }
+    } catch (error) {
+        interviewList.innerHTML = 'Ошибка загрузки интервью.';
+        console.error(error);
+    }
+}
+
+// Автоматическая перезагрузка каждые 20 секунд
+setInterval(loadInterviews, 20000);
+
+// Получение текущего минимального процента из БД
+async function loadMinPercent() {
+    try {
+        const response = await fetch('/get_min_percent');
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('min-percent').value = data.min_percent;
+        } else {
+            alert('Ошибка получения минимального процента');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+// Сохранение нового значения в БД
+async function saveMinPercent() {
+    const percent = document.getElementById('min-percent').value;
+    if (!percent || isNaN(percent)) {
+        alert('Пожалуйста, введите корректное число от 0 до 100');
+        return;
+    }
+
+    try {
+        const response = await fetch('/set_min_percent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ min_percent: parseInt(percent) })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Процент соответствия обновлён');
+        } else {
+            alert('Ошибка при сохранении процента');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+
+document.getElementById('resume-upload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const formData = new FormData();
+        formData.append('resume-upload', file);
+
+        fetch('/upload/resume', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при загрузке резюме');
+        });
+        event.target.value = '';
+    }
+});
+
+document.getElementById('vacancy-upload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const formData = new FormData();
+        formData.append('vacancy-upload', file);
+
+        fetch('/upload/vacancy', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при загрузке вакансии');
+        });
+        event.target.value = '';
+    }
+});
+
+async function getGreeting() {
+    try {
+        const response = await fetch('/get_greeting', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ state })
+        });
+
+        if (!response.ok) throw new Error('Не удалось получить вопрос');
+
+        const data = await response.json();
+        state = '';
+        if (data.state === 'new') {
+            const audioBlob = base64ToBlob(data.wav, 'audio/wav');
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audioElement = document.querySelector('audio');
+            audioElement.src = audioUrl;
+            audioElement.play();
+
+            const questionList = document.getElementById('question-list');
+            const item = document.createElement('div');
+            item.className = 'question-item';
+            item.textContent = data.question;
+            questionList.appendChild(item);
+        } else if (data.state === 'wait') {
+            console.log('Ожидание...');
+        }
+    } catch (error) {
+        console.error('Ошибка получения вопроса:', error);
+        alert('Ошибка: Не удалось получить вопрос');
+    }
+}
+// Загрузка списка резюме
+async function loadResumes() {
+    const resumeList = document.getElementById('resume-list');
+    resumeList.innerHTML = 'Загрузка...';
+
+    try {
+        const response = await fetch('/get_resumes');
+        const resumes = await response.json();
+
+        resumeList.innerHTML = '';
+        resumes.forEach(resume => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+
+            const span = document.createElement('span');
+            span.textContent = resume.resume_file || 'Без имени';
+
+            const btn = document.createElement('button');
+            btn.textContent = 'х';
+            btn.style.marginLeft = '10px';
+            btn.className = 'delete-btn';
+            btn.onclick = () => deleteResume(resume.resume_file);
+
+            div.appendChild(span);
+            div.appendChild(btn);
+            resumeList.appendChild(div);
+        });
+    } catch (error) {
+        resumeList.innerHTML = 'Ошибка загрузки резюме.';
+        console.error(error);
+    }
+}
+
+// Загрузка списка вакансий
+async function loadVacancies() {
+    const vacancyList = document.getElementById('vacancy-list');
+    vacancyList.innerHTML = 'Загрузка...';
+
+    try {
+        const response = await fetch('/get_vacancies');
+        const vacancies = await response.json();
+
+        vacancyList.innerHTML = '';
+        vacancies.forEach(vacancy => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+
+            const span = document.createElement('span');
+            span.textContent = vacancy.vacancy_file || 'Без имени';
+
+            const btn = document.createElement('button');
+            btn.textContent = 'х';
+            btn.style.marginLeft = '10px';
+            btn.className = 'delete-btn';
+            btn.onclick = () => deleteVacancy(vacancy.vacancy_file);
+
+            div.appendChild(span);
+            div.appendChild(btn);
+            vacancyList.appendChild(div);
+        });
+    } catch (error) {
+        vacancyList.innerHTML = 'Ошибка загрузки вакансий.';
+        console.error(error);
+    }
+}
+async function deleteResume(id) {
+    if (!confirm('Вы уверены, что хотите удалить это резюме?')) return;
+
+    try {
+        const response = await fetch(`/delete_resume/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Резюме удалено.');
+            loadResumes(); // Перезагружаем список
+        } else {
+            alert('Ошибка удаления резюме.');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+async function deleteVacancy(id) {
+    if (!confirm('Вы уверены, что хотите удалить эту вакансию?')) return;
+
+    try {
+        const response = await fetch(`/delete_vacancy/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Вакансия удалена.');
+            loadVacancies(); // Перезагружаем список
+        } else {
+            alert('Ошибка удаления вакансии.');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+// Преобразование base64 в Blob
+function base64ToBlob(base64, mimeType) {
+    const byteString = atob(base64);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeType });
+}
+
+
+
+// Начать опрос сервера
+function startPolling() {
+    pollingInterval = setInterval(() => {
+    }, 5000); // Повтор каждые 5 секунд
+}
+
+// Инициализация при загрузке страницы
+
+window.addEventListener('load', () => {
+    state = 'new';
+    audioPlayer.style.display = 'none';
+    loadResumes();
+    loadVacancies();
+    getGreeting(state);
+    loadMinPercent();
+    loadInterviews()
+});
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+langchain-gigachat
+langgraph
+psycopg2-binary
+configparser
+sqlalchemy
+flask
+gTTS
+SpeechRecognition
+pydub

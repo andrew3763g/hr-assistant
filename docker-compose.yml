@@ -22,6 +22,27 @@ services:
       timeout: 5s
       retries: 10
 
+  llm_agent:
+    image: llm_agent:1
+    container_name: llm_agent
+    build: ./llm_agent
+    restart: always
+
+  frontend:
+    image: frontend:1
+    container_name: frontend
+    build: ./frontend
+    ports:
+      - "5000:5000"
+    restart: always
+
+  db_backend:
+    image: db_backend:1
+    container_name: db_backend
+    build: ./db_backend
+    restart: always
+
+
 volumes:
   postgres_data:
     driver: local

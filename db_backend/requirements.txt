@@ -1,0 +1,5 @@
+langchain-gigachat
+langgraph
+psycopg2-binary
+configparser
+sqlalchemy

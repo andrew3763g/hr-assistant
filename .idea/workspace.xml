@@ -4,16 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="v0 alpha">
+    <list default="true" id="23be7db0-8f73-44af-b100-00f72469667a" name="Changes" comment="moved llm backend to a separate dir">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/db_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/db_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/input_audio.webm" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/input_audio.webm" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/output.mp3" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/output.mp3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/templates/index2.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/templates/index2.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/llm_agent/base_questions.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/llm_agent/config.ini" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/llm_agent/llm_agent.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/llm_agent/redflags.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/tmp/.ipynb_checkpoints/LLM v1-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/.ipynb_checkpoints/LLM v1-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/LLM resume parser.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/LLM resume parser.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/LLM v1.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/LLM v1.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -140,7 +139,47 @@
       <option name="project" value="LOCAL" />
       <updated>1757518301636</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="fix frontend for user">
+      <option name="closed" value="true" />
+      <created>1757521248190</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1757521248190</updated>
+    </task>
+    <task id="LOCAL-00009" summary="fix frontend for user">
+      <option name="closed" value="true" />
+      <created>1757521262923</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1757521262923</updated>
+    </task>
+    <task id="LOCAL-00010" summary="fix frontend for admin&#10;user frontend has a bug. audio record not working">
+      <option name="closed" value="true" />
+      <created>1757524913351</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1757524913351</updated>
+    </task>
+    <task id="LOCAL-00011" summary="fix audio">
+      <option name="closed" value="true" />
+      <created>1757526700411</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1757526700411</updated>
+    </task>
+    <task id="LOCAL-00012" summary="moved llm backend to a separate dir">
+      <option name="closed" value="true" />
+      <created>1757526996052</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1757526996052</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -150,6 +189,10 @@
     <MESSAGE value="backend preliminary scores calculation and resume/vacancy parsing implemented" />
     <MESSAGE value="backend preliminary scores calculation and resume/vacancy parsing implemented in ipynb" />
     <MESSAGE value="v0 alpha" />
-    <option name="LAST_COMMIT_MESSAGE" value="v0 alpha" />
+    <MESSAGE value="fix frontend for user" />
+    <MESSAGE value="fix frontend for admin&#10;user frontend has a bug. audio record not working" />
+    <MESSAGE value="fix audio" />
+    <MESSAGE value="moved llm backend to a separate dir" />
+    <option name="LAST_COMMIT_MESSAGE" value="moved llm backend to a separate dir" />
   </component>
 </project>
