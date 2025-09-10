@@ -67,18 +67,23 @@ def load_resume_to_db(filename, text):
     conn.close()
 
 def add_uuid_message_to_db(uuid, message=''):
+    print('add_uuid_message_to_db',uuid,message)
+    res=get_messages_by_uuid_and_state(uuid,'init')
+    row=res[0]
+    vacancy=row['vacancy']
+    resume=row['resume']
     # Подключение к БД (замените параметры на свои)
     conn = get_connection()
     cursor = conn.cursor()
 
     # SQL-запрос для вставки данных
     query = """
-        INSERT INTO interviews (uuid, message,state)
-        VALUES (%s, %s, 'to_process')
+        INSERT INTO interviews (uuid, message,state,vacancy,resume)
+        VALUES (%s, %s, 'send', %s, %s)
     """
-
+    print('query',query, (uuid, message, vacancy, resume))
     # Выполнение запроса
-    cursor.execute(query, (uuid, message))
+    cursor.execute(query, (uuid, message, vacancy, resume))
 
     # Сохранение изменений
     conn.commit()
@@ -88,18 +93,18 @@ def add_uuid_message_to_db(uuid, message=''):
     conn.close()
 
 
-def get_messages_by_uuid_and_state(uuid):
+def get_messages_by_uuid_and_state(uuid,state='new'):
     conn = get_connection()
     cursor = conn.cursor()
 
     # SQL-запрос для получения сообщений
     query = """
-        SELECT uuid, message 
+        SELECT uuid, message,vacancy,resume
         FROM interviews
-        WHERE uuid = %s AND state = 'new'
+        WHERE uuid = %s AND state = %s
     """
 
-    cursor.execute(query, (uuid,))
+    cursor.execute(query, (uuid,state))
     rows = cursor.fetchall()
 
     # Формирование результата
@@ -107,13 +112,35 @@ def get_messages_by_uuid_and_state(uuid):
     for row in rows:
         messages.append({
             'uuid': row[0],
-            'message': row[1]
+            'message': row[1],
+            'vacancy': row[2],
+            'resume': row[3]
         })
 
     cursor.close()
     conn.close()
 
     return messages
+
+# mark message as processed by uuid and message text
+def mark_message_as_processed(uuid, message):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # SQL-запрос для получения сообщений
+    query = """
+        update interviews set state = 'processed'
+        WHERE uuid = %s AND message = %s
+    """
+
+    cursor.execute(query, (uuid,message))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+
+
 
 def get_all_vacancies():
     conn = get_connection()

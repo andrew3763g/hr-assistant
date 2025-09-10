@@ -97,8 +97,12 @@ def admin():
     return render_template('index2.html')
 
 
-@app.route('/process-sound', methods=['POST'])
-def process_sound():
+def convert_webm_to_wav(input_path, output_path):
+    audio = AudioSegment.from_file(input_path, format="webm")
+    audio.export(output_path, format="wav")
+
+@app.route('/process-sound/<uuid>', methods=['POST'])
+def process_sound(uuid):
     # Читаем поступивший файл
     raw_data = request.get_data()
 
@@ -108,16 +112,15 @@ def process_sound():
     temp_output_file = 'output_audio.wav'
     with open(temp_input_file2, 'wb') as input_file:
         input_file.write(raw_data)
-    convert_webm_to_wav(temp_input_file2, temp_input_file)
+        audio = AudioSegment.from_file(temp_input_file2)
+        audio.export(temp_input_file, format="wav")
+
+    #convert_webm_to_wav(temp_input_file2, temp_input_file)
 
     in_text = llm_api.file_to_text(temp_input_file)
-    out_text=llm_api.ask_model(in_text)
-    llm_api.text_to_speech(out_text,temp_output_file)
-    #temp_output_file = temp_input_file
-
-    # Преобразование в base64
-    with open(temp_output_file, 'rb') as output_file:
-        encoded_data = base64.b64encode(output_file.read()).decode('utf-8')
+    print('in_text',in_text)
+    print('uuid',uuid)
+    db_utils.add_uuid_message_to_db(uuid, in_text)
 
     # Удаляем временные файлы
     #os.remove(temp_input_file)
@@ -126,13 +129,10 @@ def process_sound():
     # Формируем JSON-ответ
     return jsonify({
         'status': 200,
-        'data': encoded_data
+
     }), 200
 
 
-def convert_webm_to_wav(input_path, output_path):
-    audio = AudioSegment.from_file(input_path, format="webm")
-    audio.export(output_path, format="wav")
 
 
 
@@ -212,26 +212,33 @@ def vacancy_upload():
         return jsonify({'error': 'Invalid file type'}), 400
 
 
-@app.route('/get_question', methods=['POST'])
-def get_question():
+@app.route('/get_question/<uuid>', methods=['POST'])
+def get_question(uuid):
     data = request.get_json()
     state = data.get('state')
 
     if not state:
         return jsonify({'error': 'Missing "state" parameter'}), 400
+    print('Get question',uuid)
+    # Здесь вызвать LLM, сформировать ответ и преобразовать его в аудио
+    for out_text in  db_utils.get_messages_by_uuid_and_state(uuid):
+        print('out_text',out_text)
+        db_utils.mark_message_as_processed(out_text['uuid'], out_text['message'])
+        llm_api.text_to_speech(out_text['message'])  # Предположим, функция возвращает путь к файлу
+        audio_path = 'output.mp3'
 
-    # Здесь можно вызвать LLM, сформировать ответ и преобразовать его в аудио
-    out_text = llm_api.ask_model('Поздоровайся, спроси является ли пользователь администратором или кандидатом на вакансию', '')  # Пример вызова модели
-    llm_api.text_to_speech(out_text)  # Предположим, функция возвращает путь к файлу
-    audio_path = 'output.mp3'
+        with open(audio_path, 'rb') as f:
+            encoded_audio = base64.b64encode(f.read()).decode('utf-8')
 
-    with open(audio_path, 'rb') as f:
-        encoded_audio = base64.b64encode(f.read()).decode('utf-8')
-
+        return jsonify({
+            'wav': encoded_audio,
+            'state': 'new',
+            'question': out_text['message']
+        })
     return jsonify({
-        'wav': encoded_audio,
-        'state': 'new',
-        'question': out_text
+        'wav': '',
+        'state': 'wait',
+        'question': ''
     })
 
 @app.route('/get_greeting', methods=['POST'])
@@ -266,17 +273,11 @@ def get_greeting():
 
 @app.route('/interview/<uuid>', methods=['GET'])
 def get_user_conv(uuid):
+    print('Interview:', uuid)
     if not uuid:
         return jsonify({'error': 'Missing "uuid" parameter'}), 400
 
-
-    db_utils.add_uuid_message_to_db(uuid,'') # начало диалога
-
-    return jsonify({
-        'wav': '',
-        'state': 'wait',
-        'question': ''
-    })
+    return render_template('index.html', uuid=uuid)
 
 @app.route('/delete_resume/<resume_file>', methods=['DELETE'])
 def delete_resume(resume_file):
