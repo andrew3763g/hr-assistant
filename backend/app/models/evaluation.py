@@ -112,39 +112,43 @@ class Evaluation(Base):
     candidate = relationship("Candidate", back_populates="evaluations")
 
 
-class VacancyMatch(Base):
+class InterviewEvaluation(Base):
     """Модель матчинга кандидата с вакансией"""
-    __tablename__ = "vacancy_matches"
+    __tablename__ = "interview_evaluations"
     __table_args__ = (
         UniqueConstraint('candidate_id', 'vacancy_id', name='uq_candidate_vacancy'),
-        Index('ix_vacancy_matches_match_score', 'match_score'),
-        Index('ix_vacancy_matches_candidate_vacancy', 'candidate_id', 'vacancy_id'),
+        Index('ix_interview_evaluations_match_score', 'match_score'),
+        Index('ix_interview_evaluations_candidate_vacancy', 'candidate_id', 'vacancy_id'),
     )
-    
+
     # === Основные поля ===
     id = Column(Integer, primary_key=True, index=True)
-    
+
     # === Связи ===
     candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)
     vacancy_id = Column(Integer, ForeignKey('vacancies.id'), nullable=False)
-    
+
     # === Баллы матчинга ===
     match_score = Column(Float, nullable=False, comment="Общий балл соответствия (0-100)")
-    
+
     # === Детали матчинга (JSONB) ===
     match_details = Column(JSONB, default=dict, comment="Детали соответствия")
     # Структура: {"skills_match": 0.8, "experience_match": 0.9, "education_match": 0.7, ...}
-    
+
     skills_coverage = Column(Float, nullable=True, comment="Процент покрытия навыков")
     experience_fit = Column(Float, nullable=True, comment="Соответствие опыта")
     salary_fit = Column(Float, nullable=True, comment="Соответствие по зарплате")
-    
+
     # === GPT анализ ===
     gpt_match_reasoning = Column(Text, nullable=True, comment="Обоснование матча от GPT")
     gpt_recommended = Column(Boolean, default=False, comment="Рекомендован GPT")
-    
+
     # === Статус ===
     is_active = Column(Boolean, default=True)
     interview_scheduled = Column(Boolean, default=False)
-    
+
     # === Временные метки ===
+
+# back-compat: чтобы старые импорты не падали
+from .vacancy_match import VacancyMatch  # noqa: F401
+
