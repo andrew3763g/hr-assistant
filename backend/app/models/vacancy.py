@@ -164,7 +164,11 @@ class Vacancy(Base):
     # Интервью по этой вакансии
     interviews = relationship("Interview", back_populates="vacancy", cascade="all, delete-orphan")
     # Матчинг с кандидатами
-    candidate_matches = relationship("VacancyMatch", back_populates="vacancy", cascade="all, delete-orphan")
+    matches = relationship(
+        "VacancyMatch",
+        back_populates="vacancy",
+        cascade="all, delete-orphan",
+    )
 
     # === Методы модели ===
 

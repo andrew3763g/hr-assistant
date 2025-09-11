@@ -50,13 +50,17 @@ engine = create_engine(
     max_overflow=10,  # Максимальное превышение пула
     pool_pre_ping=True,  # Проверка соединения перед использованием
     pool_recycle=3600,  # Переподключение каждый час
-    echo=settings.DEBUG,  # Логирование SQL-запросов в режиме отладки
+    # echo=settings.DEBUG,  # Логирование SQL-запросов в режиме отладки
     # Настройки для PostgreSQL
     connect_args={
         "connect_timeout": 10,  # Таймаут подключения
         "options": "-c timezone=utc"  # Установка временной зоны
     }
 )
+
+# включение echo привязано к DEBUG — сделано через getattr
+if getattr(settings, "DEBUG", False):
+    engine.echo = True
 
 # Создаем фабрику сессий
 SessionLocal = sessionmaker(

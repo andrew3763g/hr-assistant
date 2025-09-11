@@ -1,88 +1,57 @@
-# backend/app/services/ai_service.py (упрощенная версия без OpenAI для тестирования)
-"""
-AI сервис для проведения интервью - версия с mock данными для тестирования
-"""
-from typing import List, Dict, Optional
+# backend/app/services/ai_service.py
+from __future__ import annotations
 import json
-import random
-from app.models.vacancy import Vacancy
+from typing import Tuple, Dict, Any, List, Optional
 
+from openai import OpenAI
+from backend.app.config import settings
 
-class AIInterviewer:
-    def __init__(self):
-        self.model = "mock-model"
-        # Заготовленные вопросы для разных позиций
-        self.question_templates = {
-            "default": [
-                "Расскажите о себе и вашем опыте работы",
-                "Почему вы хотите работать в нашей компании?",
-                "Какие ваши сильные и слабые стороны?",
-                "Где вы видите себя через 5 лет?",
-                "Опишите сложную задачу, которую вы успешно решили"
-            ],
-            "technical": [
-                "Какие технологии вы использовали в последнем проекте?",
-                "Как вы подходите к проектированию архитектуры?",
-                "Расскажите о вашем опыте с тестированием",
-                "Как вы оптимизируете производительность?",
-                "Какие паттерны проектирования вы применяете?"
-            ]
-        }
+_client = OpenAI()  # ключ берём из окружения/менеджера ключей
 
-    def generate_interview_questions(self, vacancy: Vacancy, num_questions: int = 5) -> List[str]:
-        """Генерация вопросов на основе вакансии"""
-        # Mock implementation - возвращаем заготовленные вопросы
-        questions = self.question_templates["default"][:3] + self.question_templates["technical"][:2]
-        return questions[:num_questions]
+SYSTEM_PROMPT = (
+    "You are a hiring assistant. Score candidate fitness for a vacancy strictly 0-100.\n"
+    "Return STRICT JSON: {\"score\": <int>, \"reasons\": [<string>...] }.\n"
+    "Be concise. No prose outside JSON."
+)
 
-    def conduct_interview_turn(self,
-                               conversation_history: List[Dict],
-                               candidate_message: str,
-                               vacancy: Vacancy) -> Dict:
-        """Проведение одного хода интервью"""
-        # Mock responses
-        responses = [
-            "Спасибо за ваш ответ. Можете рассказать подробнее о вашем опыте работы с похожими технологиями?",
-            "Интересно! А как вы решаете конфликтные ситуации в команде?",
-            "Хороший подход. Какие инструменты вы используете для контроля качества кода?",
-            "Понятно. Расскажите о самом сложном проекте в вашей карьере.",
-            "Отлично! У меня последний вопрос: почему именно вы подходите на эту позицию?"
-        ]
+def score_match(
+    vacancy_text: str,
+    candidate_text: str,
+    weights: Optional[Dict[str, int]] = None,
+    model: Optional[str] = None,
+) -> Tuple[int, str]:
+    """
+    Возвращает (score, reasoning). reasoning — склейка reasons, удобна для gpt_match_reasoning.
+    """
+    model = model or getattr(settings, "OPENAI_MODEL", "gpt-4o-mini")
 
-        # Определяем, пора ли завершать интервью
-        message_count = len(conversation_history)
-        is_complete = message_count >= 10  # Завершаем после 10 сообщений
+    user = (
+        f"VACANCY:\n{vacancy_text}\n\n"
+        f"CANDIDATE:\n{candidate_text}\n\n"
+        f"WEIGHTS (optional): {json.dumps(weights or {}, ensure_ascii=False)}"
+    )
 
-        if is_complete:
-            response = "Спасибо за ваши ответы! Интервью завершено. Мы свяжемся с вами в ближайшее время."
-        else:
-            response = responses[min(message_count // 2, len(responses) - 1)]
+    resp = _client.chat.completions.create(
+        model=model,
+        response_format={"type": "json_object"},
+        temperature=0.2,
+        max_tokens=400,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user},
+        ],
+    )
 
-        return {
-            "response": response,
-            "is_complete": is_complete
-        }
+    raw = resp.choices[0].message.content or "{}"
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        data = {"score": 0, "reasons": ["Model returned non-JSON response"]}
 
-    def evaluate_interview(self, conversation_history: List[Dict], vacancy: Vacancy) -> Dict:
-        """Оценка интервью и генерация отчета"""
-        # Mock evaluation
-        return {
-            "technical_score": round(random.uniform(6, 9), 1),
-            "communication_score": round(random.uniform(7, 9), 1),
-            "motivation_score": round(random.uniform(6, 9), 1),
-            "culture_fit_score": round(random.uniform(7, 9), 1),
-            "overall_score": round(random.uniform(7, 8.5), 1),
-            "strengths": [
-                "Хорошие коммуникативные навыки",
-                "Глубокие технические знания",
-                "Опыт работы в команде"
-            ],
-            "weaknesses": [
-                "Необходимо улучшить знания в области DevOps",
-                "Мало опыта с большими проектами"
-            ],
-            "recommendation": "Рекомендую пригласить на техническое интервью",
-            "hr_comment": "Перспективный кандидат с хорошим потенциалом развития"
-        }
+    score = int(data.get("score", 0))
+    reasons = data.get("reasons") or []
+    if isinstance(reasons, str):
+        reasons = [reasons]
+    reasoning = "\n".join(str(r).strip() for r in reasons if r)
 
-# -------------------
+    return score, reasoning

@@ -6,6 +6,8 @@ import uvicorn
 import os
 from getpass import getpass
 from backend.app.services.api_key_manager import APIKeyManager
+from backend.app.api.matching import router as matching_router
+from backend.app.api.imports import router as imports_router
 # Импортируем database компоненты
 from .database import Base, engine
 
@@ -53,11 +55,16 @@ async def lifespan(app: FastAPI):
 
 # Создаем FastAPI приложение
 app = FastAPI(
-    title="HR AI Assistant",
+    title="HR AI Assistant API",
     description="Интеллектуальный помощник для проведения собеседований",
     version="1.0.0",
     lifespan=lifespan
 )
+
+app.include_router(imports_router)
+
+app.include_router(matching_router)
+# сюда позже добавим импорт/вакансии/health
 
 # CORS middleware
 app.add_middleware(

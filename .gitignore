@@ -18,3 +18,4 @@ inbox/
 # Secrets / tokens
 .venv*/
 venv/
+alembic/*.log

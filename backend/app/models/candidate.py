@@ -175,7 +175,11 @@ class Candidate(Base):
     # Оценки кандидата
     evaluations = relationship("Evaluation", back_populates="candidate", cascade="all, delete-orphan")
     # Матчинг с вакансиями
-    vacancy_matches = relationship("VacancyMatch", back_populates="candidate", cascade="all, delete-orphan")
+    matches = relationship(
+        "VacancyMatch",
+        back_populates="candidate",
+        cascade="all, delete-orphan",
+    )
 
     # === Методы модели ===
 

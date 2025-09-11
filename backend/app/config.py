@@ -51,6 +51,7 @@ class Settings(BaseSettings):
         default="postgresql+psycopg://hruser:hrpassword@localhost:5432/hrdb",
         description="SQLAlchemy URL, например postgresql+psycopg://user:pass@host:5432/dbname",
     )
+    DEBUG: bool = Field(default=False)
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod

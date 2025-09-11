@@ -1,162 +1,142 @@
 from __future__ import annotations
-
-import hashlib
-import os
-import re
+import os, re
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Iterable, Optional
+from sqlalchemy.orm import Session
+from docx import Document  # убедись, что в requirements есть python-docx
 
-from .parser_service import extract_text, parse_resume
+from backend.app.models.candidate import Candidate
+from backend.app.models.vacancy import Vacancy
 
+ROOT = Path(__file__).resolve().parents[3]
+INBOX_RESUMES   = Path(os.getenv("INBOX_RESUMES",   ROOT / "inbox" / "job_applications"))
+INBOX_VACANCIES = Path(os.getenv("INBOX_VACANCIES", ROOT / "inbox" / "job_openings"))
+STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "local").lower()
 
-_SUPPORTED = {".pdf", ".docx", ".rtf", ".txt"}
+EMAIL_RE = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.I)
 
+def ingest_all(db: Session, kind: str) -> int:
+    kind = kind.lower()
+    if kind not in {"resumes", "vacancies"}:
+        raise ValueError("kind must be 'resumes' or 'vacancies'")
 
-def _read_text_from_file(path: Path) -> str:
-    ext = path.suffix.lower()
-    if ext in {".txt"}:
-        return path.read_text(encoding="utf-8", errors="ignore")
-    if ext == ".rtf":
-        # Пытаемся аккуратно распарсить RTF
-        try:
-            from striprtf.striprtf import rtf_to_text  # type: ignore
-            return rtf_to_text(path.read_text(encoding="utf-8", errors="ignore"))
-        except Exception:
-            # грубая деградация (на случай отсутствия striprtf)
-            raw = path.read_text(encoding="utf-8", errors="ignore")
-            raw = re.sub(r"\\par[d]?", "\n", raw)
-            raw = re.sub(r"{\\.*?}", "", raw)
-            raw = re.sub(r"[{}\\]", " ", raw)
-            return raw
-    # pdf/docx/и пр. — через наш универсальный extract_text
-    return extract_text(str(path))
+    files = _iter_local_files(kind) if STORAGE_BACKEND == "local" else _iter_gdrive_files(kind)
+    imported = 0
 
+    if kind == "resumes":
+        for f in files:
+            data = _parse_resume_docx(f)
+            if not data:
+                continue
+            if _candidate_exists(db, data):
+                continue
+            db.add(Candidate(**data))
+            imported += 1
+        db.commit()
+        return imported
 
-def _norm(s: str) -> str:
-    return re.sub(r"\s+", " ", s, flags=re.S).strip().lower()
+    # vacancies
+    for f in files:
+        data = _parse_vacancy_docx(f)
+        if not data:
+            continue
+        if _vacancy_exists(db, data):
+            continue
+        db.add(Vacancy(**data))
+        imported += 1
+    db.commit()
+    return imported
 
+# ---------- источники ----------
+def _iter_local_files(kind: str) -> Iterable[Path]:
+    base = INBOX_RESUMES if kind == "resumes" else INBOX_VACANCIES
+    base.mkdir(parents=True, exist_ok=True)
+    for p in sorted(base.glob("*.docx")):
+        if p.is_file():
+            yield p
 
-def _only_digits(s: str) -> str:
-    return re.sub(r"\D+", "", s or "")
+def _iter_gdrive_files(kind: str) -> Iterable[Path]:
+    # Заглушка: сейчас работаем только локально.
+    # Позже подключим backend.app.services.gdrive_service
+    return _iter_local_files(kind)
 
+# ---------- парсинг ----------
+def _parse_resume_docx(path: Path) -> Optional[dict]:
+    try:
+        doc = Document(path)
+        text = "\n".join(p.text.strip() for p in doc.paragraphs if p.text.strip())
+    except Exception:
+        return None
 
-def _resume_dedup_key(doc: Dict) -> str:
-    contacts = doc.get("contacts", {}) or {}
-    name = _norm(" ".join([contacts.get("last_name", ""),
-                           contacts.get("first_name", ""),
-                           contacts.get("middle_name", "")]).strip())
-    phone = _only_digits(contacts.get("phone", ""))
-    email = _norm(contacts.get("email", ""))
-
-    # 1) телефон — самый надёжный
-    if phone:
-        return f"phone:{phone}"
-    # 2) связка имя+email
-    if name and email:
-        return f"name_email:{name}|{email}"
-    # 3) просто email
-    if email:
-        return f"email:{email}"
-    # 4) если всё пусто — хэш нормализованного текста
-    text = _norm(doc.get("text", ""))[:2000]  # ограничим, чтобы хэш был стабильным
-    return "hash:" + hashlib.sha1(text.encode("utf-8", errors="ignore")).hexdigest()
-
-
-def _vacancy_dedup_key(text: str) -> str:
-    """
-    Примерная нормализация: берём заголовок/первые осмысленные строки.
-    Если в тексте явно встречается «Вакансия: …» — используем её.
-    """
-    t = _norm(text)
-    m = re.search(r"(?:ваканси[яи]:?\s*)(.+)", t)
+    email = None
+    m = EMAIL_RE.search(text)
     if m:
-        hdr = m.group(1)[:120]
+        email = m.group(0)
+
+    # Имя и должность попробуем взять из имени файла: "Имя Фамилия - должность.docx"
+    name_part = path.stem
+    first_name = last_name = ""
+    last_position = ""
+    if " - " in name_part:
+        name, last_position = name_part.split(" - ", 1)
     else:
-        # первые 1–2 непустые строки
-        lines = [ln.strip() for ln in re.split(r"\n+", text) if ln.strip()]
-        hdr = " ".join(lines[:2])[:120] if lines else t[:120]
-    return "vac:" + hdr
+        name = name_part
+    parts = name.replace("_", " ").split()
+    if parts:
+        first_name = parts[0]
+        if len(parts) > 1:
+            last_name = " ".join(parts[1:])
 
+    return {
+        "first_name": first_name or None,
+        "last_name": last_name or None,
+        "email": email,
+        "last_position": last_position or None,
+        "last_company": None,
+        "resume_file_path": str(path),
+    }
 
-def load_resumes_from_dir(dir_path: str | os.PathLike) -> List[Dict]:
-    """
-    Сканируем папку с резюме (pdf/docx/rtf/txt), парсим, удаляем дубли.
-    Возврат: [{id, text, contacts, skills, languages, source_path}, ...]
-    """
-    base = Path(dir_path)
-    items: List[Dict] = []
-    seen: set[str] = set()
+def _parse_vacancy_docx(path: Path) -> Optional[dict]:
+    try:
+        doc = Document(path)
+        paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+        text = "\n".join(paragraphs)
+    except Exception:
+        return None
 
-    for p in sorted(base.glob("*")):
-        if not p.is_file() or p.suffix.lower() not in _SUPPORTED:
-            continue
+    # Заголовок попытаемся взять из файла "Вакансия: <title>.docx" или первой строки
+    title = path.stem
+    if title.lower().startswith("вакансия:"):
+        title = title.split(":", 1)[1].strip()
+    elif paragraphs:
+        title = paragraphs[0][:120]
 
-        try:
-            text = _read_text_from_file(p)
-            doc = parse_resume(text)  # поддерживаем оба формата: путь/текст — parse_resume уже универсальный
-        except Exception:
-            # надёжно: если не распарсили — хотя бы завернём в текст
-            text = _read_text_from_file(p)
-            doc = {"text": text, "contacts": {}, "skills": [], "languages": []}
+    # Простая попытка вытащить город
+    location = None
+    for token in ["Москва", "Санкт-Петербург", "Новосибирск", "Екатеринбург"]:
+        if token in text:
+            location = token
+            break
 
-        key = _resume_dedup_key(doc)
-        if key in seen:
-            continue
-        seen.add(key)
+    return {
+        "title": title,
+        "location": location,
+        "description": text,
+        "status": "draft",
+    }
 
-        # аккуратное имя кандидата
-        contacts = doc.get("contacts", {}) or {}
-        display_name = " ".join([
-            contacts.get("last_name", ""),
-            contacts.get("first_name", ""),
-            contacts.get("middle_name", ""),
-        ]).strip() or p.stem
+# ---------- дедуп ----------
+def _candidate_exists(db: Session, data: dict) -> bool:
+    q = db.query(Candidate)
+    if data.get("email"):
+        q = q.filter(Candidate.email == data["email"])
+    else:
+        q = q.filter(
+            Candidate.first_name == data.get("first_name"),
+            Candidate.last_name  == data.get("last_name"),
+            Candidate.last_position == data.get("last_position"),
+        )
+    return db.query(q.exists()).scalar()
 
-        items.append({
-            "id": key,               # устойчивый id = ключ дедупликации
-            "name": display_name,
-            "text": doc.get("text", ""),
-            "contacts": contacts,
-            "skills": doc.get("skills", []),
-            "languages": doc.get("languages", []),
-            "source_path": str(p),
-        })
-
-    return items
-
-
-def load_vacancies_from_dir(dir_path: str | os.PathLike) -> List[Dict]:
-    """
-    Сканируем папку с описаниями вакансий, удаляем дубли.
-    Возврат: [{id, title, text, source_path}, ...]
-    """
-    base = Path(dir_path)
-    items: List[Dict] = []
-    seen: set[str] = set()
-
-    for p in sorted(base.glob("*")):
-        if not p.is_file() or p.suffix.lower() not in _SUPPORTED:
-            continue
-
-        try:
-            text = _read_text_from_file(p)
-        except Exception:
-            continue
-
-        key = _vacancy_dedup_key(text)
-        if key in seen:
-            continue
-        seen.add(key)
-
-        # заголовок = первая небустая строка
-        lines = [ln.strip() for ln in re.split(r"\n+", text) if ln.strip()]
-        title = lines[0][:160] if lines else p.stem
-
-        items.append({
-            "id": key,
-            "title": title,
-            "text": text,
-            "source_path": str(p),
-        })
-
-    return items
+def _vacancy_exists(db: Session, data: dict) -> bool:
+    return db.query(db.query(Vacancy).filter(Vacancy.title == data["title"]).exists()).scalar()
