@@ -59,96 +59,96 @@ class Vacancy(Base):
 
     # === Информация о вакансии ===
     title = Column(String(255), nullable=False, index=True, comment="Название позиции")
-    department = Column(String(255), nullable=True, comment="Департамент/отдел")
+    # department = Column(String(255), nullable=True, comment="Департамент/отдел")
 
     # Компания и локация
-    company_name = Column(String(255), default="Наша компания", comment="Название компании")
-    location = Column(String(255), nullable=False, comment="Город/офис")
-    address = Column(String(500), nullable=True, comment="Точный адрес офиса")
+    # company_name = Column(String(255), default="Наша компания", comment="Название компании")
+    # location = Column(String(255), nullable=False, comment="Город/офис")
+    # address = Column(String(500), nullable=True, comment="Точный адрес офиса")
 
     # === Описание и требования ===
     description = Column(Text, nullable=True, comment="Полное описание вакансии")
-    responsibilities = Column(JSON, default=list, comment="Должностные обязанности")
+    # responsibilities = Column(JSON, default=list, comment="Должностные обязанности")
 
     # Требования - разделены на обязательные и желательные
-    requirements_mandatory = Column(JSON, default=list, comment="Обязательные требования")
-    requirements_optional = Column(JSON, default=list, comment="Желательные требования")
+    # requirements_mandatory = Column(JSON, default=list, comment="Обязательные требования")
+    # requirements_optional = Column(JSON, default=list, comment="Желательные требования")
 
     # === Навыки и компетенции ===
-    hard_skills = Column(JSON, default=list, comment="Hard skills ['Python', 'SQL', ...]")
-    soft_skills = Column(JSON, default=list, comment="Soft skills ['командная работа', ...]")
+    # hard_skills = Column(JSON, default=list, comment="Hard skills ['Python', 'SQL', ...]")
+    # soft_skills = Column(JSON, default=list, comment="Soft skills ['командная работа', ...]")
 
     # Уровень требуемых навыков
-    skill_levels = Column(JSON, default=dict, comment="Уровни навыков {'Python': 'advanced', ...}")
+    # skill_levels = Column(JSON, default=dict, comment="Уровни навыков {'Python': 'advanced', ...}")
 
     # === Опыт и образование ===
-    experience_years_min = Column(Float, default=0, comment="Минимальный опыт в годах")
-    experience_years_max = Column(Float, nullable=True, comment="Максимальный опыт в годах")
-    experience_level = Column(Enum(ExperienceLevel), default=ExperienceLevel.MIDDLE, comment="Уровень опыта")
-
-    education_required = Column(String(255), nullable=True, comment="Требования к образованию")
-    speciality_required = Column(String(255), nullable=True, comment="Требуемая специальность")
+    # experience_years_min = Column(Float, default=0, comment="Минимальный опыт в годах")
+    # experience_years_max = Column(Float, nullable=True, comment="Максимальный опыт в годах")
+    # experience_level = Column(Enum(ExperienceLevel), default=ExperienceLevel.MIDDLE, comment="Уровень опыта")
+    #
+    # education_required = Column(String(255), nullable=True, comment="Требования к образованию")
+    # speciality_required = Column(String(255), nullable=True, comment="Требуемая специальность")
 
     # === Условия работы ===
-    employment_type = Column(Enum(EmploymentType), default=EmploymentType.FULL_TIME, comment="Тип занятости")
-    work_format = Column(Enum(WorkFormat), default=WorkFormat.OFFICE, comment="Формат работы")
+    # employment_type = Column(Enum(EmploymentType), default=EmploymentType.FULL_TIME, comment="Тип занятости")
+    # work_format = Column(Enum(WorkFormat), default=WorkFormat.OFFICE, comment="Формат работы")
 
     # Зарплатная вилка
-    salary_min = Column(Integer, nullable=True, comment="Минимальная зарплата")
-    salary_max = Column(Integer, nullable=True, comment="Максимальная зарплата")
-    salary_currency = Column(String(10), default="RUB", comment="Валюта зарплаты")
-    salary_gross = Column(Boolean, default=True, comment="Gross (true) или Net (false)")
+    # salary_min = Column(Integer, nullable=True, comment="Минимальная зарплата")
+    # salary_max = Column(Integer, nullable=True, comment="Максимальная зарплата")
+    # salary_currency = Column(String(10), default="RUB", comment="Валюта зарплаты")
+    # salary_gross = Column(Boolean, default=True, comment="Gross (true) или Net (false)")
 
     # === Дополнительные условия ===
-    has_probation = Column(Boolean, default=True, comment="Есть испытательный срок")
-    probation_months = Column(Integer, default=3, comment="Длительность испытательного срока")
+    # has_probation = Column(Boolean, default=True, comment="Есть испытательный срок")
+    # probation_months = Column(Integer, default=3, comment="Длительность испытательного срока")
 
-    business_trips_required = Column(Boolean, default=False, comment="Требуются командировки")
-    business_trips_frequency = Column(String(100), nullable=True, comment="Частота командировок")
+    # business_trips_required = Column(Boolean, default=False, comment="Требуются командировки")
+    # business_trips_frequency = Column(String(100), nullable=True, comment="Частота командировок")
 
-    relocation_assistance = Column(Boolean, default=False, comment="Помощь с релокацией")
+    # relocation_assistance = Column(Boolean, default=False, comment="Помощь с релокацией")
 
     # === Преимущества и бенефиты ===
-    benefits = Column(JSON, default=list, comment="Бенефиты ['ДМС', 'обучение', ...]")
+    # benefits = Column(JSON, default=list, comment="Бенефиты ['ДМС', 'обучение', ...]")
 
     # === Команда ===
-    team_size = Column(Integer, nullable=True, comment="Размер команды")
-    reports_to = Column(String(255), nullable=True, comment="Кому подчиняется")
-    subordinates_count = Column(Integer, default=0, comment="Количество подчиненных")
+    # team_size = Column(Integer, nullable=True, comment="Размер команды")
+    # reports_to = Column(String(255), nullable=True, comment="Кому подчиняется")
+    # subordinates_count = Column(Integer, default=0, comment="Количество подчиненных")
 
     # === Вопросы для интервью ===
-    custom_questions = Column(JSON, default=list, comment="Дополнительные вопросы для этой вакансии")
-    skill_questions_template = Column(JSON, default=dict, comment="Шаблоны вопросов по навыкам")
+    # custom_questions = Column(JSON, default=list, comment="Дополнительные вопросы для этой вакансии")
+    # skill_questions_template = Column(JSON, default=dict, comment="Шаблоны вопросов по навыкам")
 
     # === GPT анализ ===
-    gpt_summary = Column(Text, nullable=True, comment="Краткое описание от GPT")
-    gpt_key_requirements = Column(JSON, default=list, comment="Ключевые требования по мнению GPT")
-    gpt_ideal_candidate = Column(Text, nullable=True, comment="Портрет идеального кандидата от GPT")
-    gpt_interview_focus = Column(JSON, default=list, comment="На что обратить внимание на интервью")
+    # gpt_summary = Column(Text, nullable=True, comment="Краткое описание от GPT")
+    # gpt_key_requirements = Column(JSON, default=list, comment="Ключевые требования по мнению GPT")
+    # gpt_ideal_candidate = Column(Text, nullable=True, comment="Портрет идеального кандидата от GPT")
+    # gpt_interview_focus = Column(JSON, default=list, comment="На что обратить внимание на интервью")
 
     # === Оценочные критерии ===
-    evaluation_weights = Column(JSON, default=dict, comment="Веса критериев оценки для этой вакансии")
-    min_score_threshold = Column(Float, default=70.0, comment="Минимальный проходной балл")
-    auto_reject_criteria = Column(JSON, default=list, comment="Дополнительные критерии автоотказа")
+    # evaluation_weights = Column(JSON, default=dict, comment="Веса критериев оценки для этой вакансии")
+    # min_score_threshold = Column(Float, default=70.0, comment="Минимальный проходной балл")
+    # auto_reject_criteria = Column(JSON, default=list, comment="Дополнительные критерии автоотказа")
 
     # === Статистика ===
-    views_count = Column(Integer, default=0, comment="Количество просмотров")
-    applications_count = Column(Integer, default=0, comment="Количество откликов")
-    interviews_scheduled = Column(Integer, default=0, comment="Назначено интервью")
-    interviews_completed = Column(Integer, default=0, comment="Проведено интервью")
+    # views_count = Column(Integer, default=0, comment="Количество просмотров")
+    # applications_count = Column(Integer, default=0, comment="Количество откликов")
+    # interviews_scheduled = Column(Integer, default=0, comment="Назначено интервью")
+    # interviews_completed = Column(Integer, default=0, comment="Проведено интервью")
 
     # === Статус и метаданные ===
-    status = Column(Enum(VacancyStatus), default=VacancyStatus.DRAFT, index=True, comment="Статус вакансии")
-    is_urgent = Column(Boolean, default=False, comment="Срочная вакансия")
-    is_hot = Column(Boolean, default=False, comment="Горячая вакансия")
-    priority = Column(Integer, default=0, comment="Приоритет (чем выше, тем важнее)")
+    # status = Column(Enum(VacancyStatus), default=VacancyStatus.DRAFT, index=True, comment="Статус вакансии")
+    # is_urgent = Column(Boolean, default=False, comment="Срочная вакансия")
+    # is_hot = Column(Boolean, default=False, comment="Горячая вакансия")
+    # priority = Column(Integer, default=0, comment="Приоритет (чем выше, тем важнее)")
 
     # === Временные метки ===
     created_at = Column(DateTime, default=datetime.utcnow, comment="Дата создания")
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, comment="Дата обновления")
-    published_at = Column(DateTime, nullable=True, comment="Дата публикации")
-    deadline_at = Column(DateTime, nullable=True, comment="Дедлайн закрытия вакансии")
-    closed_at = Column(DateTime, nullable=True, comment="Дата закрытия")
+    # updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, comment="Дата обновления")
+    # published_at = Column(DateTime, nullable=True, comment="Дата публикации")
+    # deadline_at = Column(DateTime, nullable=True, comment="Дедлайн закрытия вакансии")
+    # closed_at = Column(DateTime, nullable=True, comment="Дата закрытия")
 
     # === Источник вакансии ===
     source_file_path = Column(String(500), nullable=True, comment="Путь к исходному файлу")
@@ -156,9 +156,9 @@ class Vacancy(Base):
     original_text = Column(Text, nullable=True, comment="Оригинальный текст вакансии")
 
     # === Ответственные ===
-    hr_manager_name = Column(String(255), nullable=True, comment="ФИО HR менеджера")
-    hr_manager_contact = Column(String(255), nullable=True, comment="Контакт HR менеджера")
-    hiring_manager_name = Column(String(255), nullable=True, comment="ФИО нанимающего менеджера")
+    # hr_manager_name = Column(String(255), nullable=True, comment="ФИО HR менеджера")
+    # hr_manager_contact = Column(String(255), nullable=True, comment="Контакт HR менеджера")
+    # hiring_manager_name = Column(String(255), nullable=True, comment="ФИО нанимающего менеджера")
 
     # === Связи с другими таблицами ===
     # Интервью по этой вакансии

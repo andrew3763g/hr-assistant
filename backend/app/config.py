@@ -40,17 +40,32 @@ class Settings(BaseSettings):
         description="Пароль к зашифрованному хранилищу API-ключей",
     )
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_prefix="",  # как у тебя
-        extra="ignore",
-        case_sensitive=False,
-    )
-    # --- БД ---
-    DATABASE_URL: str = Field(
-        default="postgresql+psycopg://hruser:hrpassword@localhost:5432/hrdb",
-        description="SQLAlchemy URL, например postgresql+psycopg://user:pass@host:5432/dbname",
-    )
+        # --- БД ---
+
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_NAME: str = "hrdb"
+    DB_USER: str = "hruser"
+    DB_PASSWORD: str = "hrpass"
+
+    # Если хочешь задать DSN одной переменной – можно, иначе соберём ниже
+    DATABASE_URL: str | None = None
+
+    # Флаг окружения (локально vs docker)
+    RUN_IN_DOCKER: bool = False
+
+    @property
+    def db_url(self) -> str:
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
+
+        host = "hr_postgres" if self.RUN_IN_DOCKER else self.DB_HOST
+        # отключаем SSL negotiation для локального postgres
+        return (
+            f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{host}:{self.DB_PORT}/{self.DB_NAME}?sslmode=disable"
+        )
+
     DEBUG: bool = Field(default=False)
 
     @field_validator("DATABASE_URL", mode="before")

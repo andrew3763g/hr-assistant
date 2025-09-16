@@ -1,37 +1,53 @@
 # migrations/env.py
 from __future__ import annotations
-import os, sys
+
+import os
+import sys
 from pathlib import Path
 from logging.config import fileConfig
+
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from dotenv import load_dotenv
 
-# 1) сначала кладём корень проекта в sys.path
+# --- bootstrap project and .env ---
 PROJECT_ROOT = Path(__file__).resolve().parents[1]  # .../hr-assistant
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# 2) подгружаем .env из корня
 load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(PROJECT_ROOT / ".env.alembic", override=True)
 
-# 3) теперь можно импортировать своё приложение
+# Import app bits AFTER sys.path/.env
 from backend.app.database import Base
 from backend.app.config import settings
-import backend.app.models  # noqa: F401 регистрирует все модели
+import backend.app.models  # noqa: F401  # registers all models
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
+# ---------- SINGLE source of DSN (string) ----------
+# Precedence:
+#   1) ALEMBIC_DATABASE_URL (специально для миграций)
+#   2) DATABASE_URL
+#   3) settings.SQLALCHEMY_URL (или settings.DATABASE_URL) -> str(...)
+dsn = (
+    os.getenv("ALEMBIC_DATABASE_URL")
+    or os.getenv("DATABASE_URL")
+    or getattr(settings, "SQLALCHEMY_URL", None)
+    or getattr(settings, "DATABASE_URL", None)
+)
+if dsn is None:
+    raise RuntimeError("Database URL is not configured")
+
+config.set_main_option("sqlalchemy.url", str(dsn))
+# -----------------------------------
+
+# Logging config
 if config.config_file_name:
     fileConfig(config.config_file_name)
 
-# (опционально) разрешаем переопределить URL переменной окружения
-db_url = os.getenv("DATABASE_URL")
-if db_url:
-    config.set_main_option("sqlalchemy.url", db_url)
-
 target_metadata = Base.metadata
+
 
 def run_migrations_offline() -> None:
     context.configure(
@@ -43,6 +59,7 @@ def run_migrations_offline() -> None:
     )
     with context.begin_transaction():
         context.run_migrations()
+
 
 def run_migrations_online() -> None:
     connectable = engine_from_config(
@@ -59,6 +76,7 @@ def run_migrations_online() -> None:
         )
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

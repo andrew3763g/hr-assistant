@@ -1,11 +1,36 @@
 # backend/app/schemas/interview.py
 """Pydantic v2 схемы для работы с интервью"""
+from __future__ import annotations
 
+from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
+# class InterviewCreate(BaseModel):
+#     candidate_id: int
+#     vacancy_id: int
+
+
+# class InterviewResponse(BaseModel):
+#     id: int
+#     candidate_id: int
+#     vacancy_id: int
+#     created_at: datetime | None = None
+#
+#     class Config:
+#         from_attributes = True  # orm_mode (Pydantic v2)
+
+
+class InterviewChatRequest(BaseModel):
+    interview_id: int
+    text: str
+
+
+class InterviewChatResponse(BaseModel):
+    interview_id: int
+    reply: str
 
 class InterviewStatus(str, Enum):
     CREATED = "created"

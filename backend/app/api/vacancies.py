@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from backend.app.database import SessionLocal
 from backend.app.models.vacancy import Vacancy
 
-router = APIRouter(prefix="/vacancies", tags=["vacancies"])
+router = APIRouter(prefix="/vacancies", tags=["Vacancies"])
 
 class VacancyCreate(BaseModel):
     title: str

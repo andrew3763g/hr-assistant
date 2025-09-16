@@ -1,57 +1,68 @@
 # backend/app/services/ai_service.py
 from __future__ import annotations
+
 import json
-from typing import Tuple, Dict, Any, List, Optional
+import os
+from typing import List, Dict, Any
 
 from openai import OpenAI
-from backend.app.config import settings
 
-_client = OpenAI()  # ключ берём из окружения/менеджера ключей
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
-SYSTEM_PROMPT = (
-    "You are a hiring assistant. Score candidate fitness for a vacancy strictly 0-100.\n"
-    "Return STRICT JSON: {\"score\": <int>, \"reasons\": [<string>...] }.\n"
-    "Be concise. No prose outside JSON."
-)
+# Клиент берём из окружения; .env уже подхватывается конфигом проекта
+_client = OpenAI(api_key=OPENAI_API_KEY)
 
-def score_match(
-    vacancy_text: str,
-    candidate_text: str,
-    weights: Optional[Dict[str, int]] = None,
-    model: Optional[str] = None,
-) -> Tuple[int, str]:
+
+class AIInterviewer:
+    """Простой HR-интервьюер: отвечает по истории диалога."""
+
+    def __init__(self, model: str | None = None):
+        self.model = model or MODEL
+        self.system_prompt = (
+            "You are an HR interviewer bot. Ask concise, professional questions, no more than 2 at a time. "
+            "Use Russian if the candidate writes in Russian."
+        )
+
+    def chat(self, history: List[Dict[str, str]], user_text: str) -> str:
+        """
+        :param history: [{role: 'user'|'assistant', content: '...'}, ...]
+        :param user_text: новое сообщение пользователя
+        :return: ответ ассистента
+        """
+        messages = [{"role": "system", "content": self.system_prompt}] + history + [
+            {"role": "user", "content": user_text}
+        ]
+        resp = _client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.2,
+        )
+        return resp.choices[0].message.content or ""
+
+
+def score_match(vacancy_text: str, resume_text: str) -> Dict[str, Any]:
     """
-    Возвращает (score, reasoning). reasoning — склейка reasons, удобна для gpt_match_reasoning.
+    Черновой скоринг матчинга вакансии и резюме. Возвращает JSON со score/skills_coverage/experience_fit/salary_fit.
     """
-    model = model or getattr(settings, "OPENAI_MODEL", "gpt-4o-mini")
-
-    user = (
-        f"VACANCY:\n{vacancy_text}\n\n"
-        f"CANDIDATE:\n{candidate_text}\n\n"
-        f"WEIGHTS (optional): {json.dumps(weights or {}, ensure_ascii=False)}"
+    system = (
+        "You are an HR matching assistant. Compare a vacancy and a resume and return a compact JSON with keys: "
+        "score (0..100), skills_coverage (0..1), experience_fit (0..1), salary_fit (0..1). Do not add commentary."
     )
-
+    messages = [
+        {"role": "system", "content": system},
+        {
+            "role": "user",
+            "content": f"VACANCY:\n{vacancy_text}\n\nRESUME:\n{resume_text}",
+        },
+    ]
     resp = _client.chat.completions.create(
-        model=model,
+        model=MODEL,
+        messages=messages,
+        temperature=0.0,
         response_format={"type": "json_object"},
-        temperature=0.2,
-        max_tokens=400,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user},
-        ],
     )
-
-    raw = resp.choices[0].message.content or "{}"
     try:
-        data = json.loads(raw)
-    except json.JSONDecodeError:
-        data = {"score": 0, "reasons": ["Model returned non-JSON response"]}
-
-    score = int(data.get("score", 0))
-    reasons = data.get("reasons") or []
-    if isinstance(reasons, str):
-        reasons = [reasons]
-    reasoning = "\n".join(str(r).strip() for r in reasons if r)
-
-    return score, reasoning
+        return json.loads(resp.choices[0].message.content or "{}")
+    except Exception:
+        return {"score": 0, "skills_coverage": 0.0, "experience_fit": 0.0, "salary_fit": 0.0}

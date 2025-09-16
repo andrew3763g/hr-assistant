@@ -3,9 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from ..database import get_db
-from ..models import Interview, Candidate, Vacancy, InterviewMessage, MessageRole
-from ..schemas.interview import InterviewCreate, InterviewResponse, InterviewChatRequest, InterviewChatResponse
-from ..services.ai_service import AIInterviewer
+from backend.app.models import Interview, Candidate, Vacancy
+from backend.app.models.interview_message import InterviewMessage, MessageRole
+
+from backend.app.schemas.interview import InterviewCreate, InterviewResponse, InterviewChatRequest, InterviewChatResponse
+from backend.app.services.ai_service import AIInterviewer
 from datetime import datetime
 
 router = APIRouter()

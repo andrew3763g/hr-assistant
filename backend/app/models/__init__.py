@@ -1,9 +1,13 @@
-"""Модели базы данных"""
+# backend/app/models/__init__.py
+from .candidate import Candidate
+from .vacancy import Vacancy
+from .interview import Interview
+from .interview_message import InterviewMessage, MessageRole
+from .evaluation import InterviewEvaluation  # если используешь
+from .vacancy_match import VacancyMatch     # если используешь
 
-from .candidate import Candidate, CandidateStatus, Gender, EducationLevel
-from .vacancy import Vacancy, VacancyStatus, EmploymentType, WorkFormat, ExperienceLevel
-from .interview import Interview, InterviewStatus, InterviewQuestion, InterviewAnswer
-from .interview_message import InterviewMessage
-from .evaluation import Evaluation, EvaluationDecision, InterviewEvaluation
-from .vacancy_match import VacancyMatch  # noqa: F401
-__all__ = ['Candidate', 'Vacancy', 'Interview', 'Evaluation', 'VacancyMatch']
+__all__ = [
+    "Candidate", "Vacancy", "Interview",
+    "InterviewMessage", "MessageRole",
+    "InterviewEvaluation", "VacancyMatch",
+]

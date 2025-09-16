@@ -1,18 +1,17 @@
 # backend/app/api/imports.py
-from fastapi import APIRouter
-from backend.app.database import SessionLocal
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from backend.app.database import get_db
 from backend.app.services.ingest_service import ingest_all
 
-router = APIRouter(prefix="/import", tags=["import"])
+router = APIRouter(prefix="/import", tags=["Import"])
 
 @router.post("/resumes")
-def import_resumes():
-    with SessionLocal() as db:
-        count = ingest_all(db, kind="resumes")
-        return {"imported": count}
+def import_resumes(db: Session = Depends(get_db)):
+    count = ingest_all(db, kind="resumes")
+    return {"imported": count}
 
 @router.post("/vacancies")
-def import_vacancies():
-    with SessionLocal() as db:
-        count = ingest_all(db, kind="vacancies")
-        return {"imported": count}
+def import_vacancies(db: Session = Depends(get_db)):
+    count = ingest_all(db, kind="vacancies")
+    return {"imported": count}

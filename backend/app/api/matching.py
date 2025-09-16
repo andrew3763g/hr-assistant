@@ -1,30 +1,25 @@
 # backend/app/api/matching.py
-from __future__ import annotations
-from typing import Dict, Optional
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from backend.app.database import SessionLocal
-from backend.app.services.matcher_service import rank_candidates
+from backend.app.services.matcher_service import rank_candidates_for_vacancy
 
-router = APIRouter(prefix="/matching", tags=["matching"])
+router = APIRouter(prefix="/matching", tags=["Matching"])
+
+def get_db():
+    with SessionLocal() as db:
+        yield db
 
 class RankRequest(BaseModel):
     vacancy_id: int
     top_k: int = 5
-    weights: Optional[Dict[str, int]] = None  # {"skills":4, "recent":3, ...}
+    weights: dict[str, int] | None = None
 
 @router.post("/rank")
-def rank(req: RankRequest):
-    try:
-        with SessionLocal() as db:
-            items = rank_candidates(
-                db=db,
-                vacancy_id=req.vacancy_id,
-                top_k=req.top_k,
-                weights=req.weights or {},
-            )
-            return {"items": items, "count": len(items)}
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+def rank(req: RankRequest, db: Session = Depends(get_db)):
+    items = rank_candidates_for_vacancy(
+        db, vacancy_id=req.vacancy_id, top_k=req.top_k, weights=req.weights
+    )
+    return {"items": items}

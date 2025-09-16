@@ -116,7 +116,7 @@ class InterviewEvaluation(Base):
     """Модель матчинга кандидата с вакансией"""
     __tablename__ = "interview_evaluations"
     __table_args__ = (
-        UniqueConstraint('candidate_id', 'vacancy_id', name='uq_candidate_vacancy'),
+        UniqueConstraint('candidate_id', 'vacancy_id', name='uq_interview_evaluations_candidate_vacancy'),
         Index('ix_interview_evaluations_match_score', 'match_score'),
         Index('ix_interview_evaluations_candidate_vacancy', 'candidate_id', 'vacancy_id'),
     )

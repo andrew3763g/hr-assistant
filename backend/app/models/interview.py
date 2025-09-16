@@ -106,7 +106,7 @@ class Interview(Base):
     candidate = relationship("Candidate", back_populates="interviews")
     vacancy = relationship("Vacancy", back_populates="interviews")
     evaluation = relationship("Evaluation", back_populates="interview", uselist=False)
-
+    messages = relationship("InterviewMessage", back_populates="interview", cascade="all, delete-orphan")
 
 class InterviewQuestion(Base):
     """Модель вопроса интервью (опционально для нормализации)"""

@@ -1,72 +1,29 @@
 # backend/app/main.py
+from dotenv import load_dotenv
+load_dotenv()  # .env подхватится до любых импортов, читающих переменные окружения
+
+import os
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import uvicorn
-import os
-from getpass import getpass
-from backend.app.services.api_key_manager import APIKeyManager
-from backend.app.api.matching import router as matching_router
+
+# Роутеры API
 from backend.app.api.imports import router as imports_router
-# Импортируем database компоненты
-from .database import Base, engine
+from backend.app.api.matching import router as matching_router
+from backend.app.api.vacancies import router as vacancies_router
+from backend.app.api.interviews import router as interviews_router
+from backend.app.api.config import router as config_router
+from backend.app.api.resume_upload import router as resume_upload_router
 
-km = APIKeyManager()  # путь по умолчанию: backend/app/temp/api_keys.enc
+# ВАЖНО: никаких Base.metadata.create_all — миграциями управляет Alembic
 
-def ensure_openai_key():
-    # 1) ENV?
-    env = os.getenv("OPENAI_API_KEY")
-    if env:
-        return env
-
-    # 2) Попытка расшифровать?
-    use_enc = input("Use encrypted key file? [y/N]: ").strip().lower() == "y"
-    if use_enc:
-        pp = getpass("Passphrase: ")
-        key = km.get("openai", passphrase=pp)
-        if key:
-            os.environ["OPENAI_API_KEY"] = key
-            return key
-        print("Encrypted store not found or wrong passphrase.")
-
-    # 3) Ввод нового + запись
-    key = getpass("Paste your OpenAI API key (sk-...): ").strip()
-    if not key.startswith("sk-"):
-        print("Looks not like an OpenAI key. Aborting.")
-        return None
-    pp = getpass("Set passphrase to encrypt key: ")
-    km.set("openai", key, passphrase=pp)
-    print("Encrypted and saved. You can commit the .enc file safely.")
-    os.environ["OPENAI_API_KEY"] = key
-    return key
-
-ensure_openai_key()
-
-# Создаем таблицы при старте
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    print("Creating database tables...")
-    Base.metadata.create_all(bind=engine)
-    print("Database tables created successfully!")
-    yield
-    # Shutdown
-    print("Shutting down...")
-
-# Создаем FastAPI приложение
 app = FastAPI(
     title="HR AI Assistant API",
     description="Интеллектуальный помощник для проведения собеседований",
     version="1.0.0",
-    lifespan=lifespan
 )
 
-app.include_router(imports_router)
-
-app.include_router(matching_router)
-# сюда позже добавим импорт/вакансии/health
-
-# CORS middleware
+# CORS (пока максимально открытый для удобства разработки)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -75,90 +32,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Вместо сломанных импортов используем простые
-try:
-    from .api.simple_endpoints import candidates_router, vacancies_router, interviews_router
-    app.include_router(candidates_router, prefix="/api/candidates", tags=["Candidates"])
-    app.include_router(vacancies_router, prefix="/api/vacancies", tags=["Vacancies"])
-    app.include_router(interviews_router, prefix="/api/interviews", tags=["Interviews"])
-    print("Simple endpoints loaded successfully!")
-except ImportError as e:
-    print(f"Could not load simple endpoints: {e}")
+# Подключаем роутеры
+app.include_router(imports_router,      prefix="/import",     tags=["Import"])
+app.include_router(vacancies_router,   prefix="/vacancies",  tags=["Vacancies"])
+app.include_router(interviews_router,  prefix="/interviews", tags=["Interviews"])
+app.include_router(matching_router,    prefix="/matching",   tags=["Matching"])
+app.include_router(config_router,      prefix="/config",     tags=["Config"])
+app.include_router(resume_upload_router, prefix="/resume",   tags=["Resume"])
 
-# # Импортируем и подключаем роутеры
-# try:
-#     from .api import candidates
-#     app.include_router(candidates.router, prefix="/api/candidates", tags=["Candidates"])
-#     print("Candidates router added")
-# except ImportError as e:
-#     print(f"Could not import candidates: {e}")
-#
-# try:
-#     from app.api import vacancies
-#     app.include_router(vacancies.router, prefix="/api/vacancies", tags=["Vacancies"])
-#     print("Vacancies router added")
-# except ImportError as e:
-#     print(f"Could not import vacancies: {e}")
-#
-# try:
-#     from .api import interviews
-#     app.include_router(interviews.router, prefix="/api/interviews", tags=["Interviews"])
-#     print("Interviews router added")
-# except ImportError as e:
-#     print(f"Could not import interviews: {e}")
-#
-try:
-    from .api import ai_assistant
-    app.include_router(ai_assistant.router, prefix="/api/ai", tags=["AI Assistant"])
-    print("AI Assistant router added")
-except ImportError as e:
-    print(f"Could not import ai_assistant: {e}")
-
-# ВАЖНО: Импортируем config отдельно
-try:
-    from .api import config
-    app.include_router(config.router, prefix="/api/config", tags=["Configuration"])
-    print("Configuration router added successfully!")
-except ImportError as e:
-    print(f"ERROR: Could not import config: {e}")
-
-# Добавь после блока с config (примерно строка 85)
-try:
-    from .api import resume_upload
-    app.include_router(resume_upload.router, prefix="/api/resume", tags=["Resume"])
-    print("Resume upload router added successfully!")
-except ImportError as e:
-    print(f"ERROR: Could not import resume_upload: {e}")
-# Базовые endpoints
-
+# Базовые health/doc endpoints
 @app.get("/")
 async def root():
-    return {
-        "message": "HR AI Assistant API",
-        "docs": "/docs",
-        "health": "ok"
-    }
-
-@app.get("/api/")
-async def api_root():
-    return {
-        "message": "API is working",
-        "endpoints": {
-            "candidates": "/api/candidates/",
-            "vacancies": "/api/vacancies/",
-            "interviews": "/api/interviews/",
-            "ai": "/api/ai/",
-            "config": "/api/config/"
-        }
-    }
+    return {"message": "HR AI Assistant API", "docs": "/docs", "health": "/health"}
 
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+async def health():
+    return {"status": "ok", "openai_key_set": bool(os.getenv("OPENAI_API_KEY"))}
 
 if __name__ == "__main__":
+    # Запуск для локалки: uvicorn backend.app.main:app --reload --port 8000
     uvicorn.run(app, host="0.0.0.0", port=8000)
-    km = APIKeyManager()
-    # только если ключа в ENV нет – попросит и зашифрует
-    if os.getenv("HR_INTERACTIVE_CONFIG", "0") == "1":
-        km.configure_openai_key_interactive()
