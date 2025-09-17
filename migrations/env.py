@@ -27,13 +27,13 @@ config = context.config
 
 # ---------- SINGLE source of DSN (string) ----------
 # Precedence:
-#   1) ALEMBIC_DATABASE_URL (специально для миграций)
-#   2) DATABASE_URL
-#   3) settings.SQLALCHEMY_URL (или settings.DATABASE_URL) -> str(...)
+#   1) ALEMBIC_DATABASE_URL (explicit override for migrations)
+#   2) DATABASE_URL (shared default)
+#   3) settings.db_url (same resolver as the application runtime)
 dsn = (
     os.getenv("ALEMBIC_DATABASE_URL")
     or os.getenv("DATABASE_URL")
-    or getattr(settings, "SQLALCHEMY_URL", None)
+    or getattr(settings, "db_url", None)
     or getattr(settings, "DATABASE_URL", None)
 )
 if dsn is None:
