@@ -1,0 +1,25 @@
+{
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "database": "hrdb",
+            "username": "hruser",
+            "name": "hr-assistant-local"
+        }
+    ],
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "python.defaultInterpreterPath": ".venv311/Scripts/python.exe",
+    "sqltools.useNodeRuntime": true,
+    "terminal.integrated.profiles.windows": {
+    "Codex": {
+      "path": "C:\\Windows\\System32\\cmd.exe",
+      "args": ["/k", "codex"],
+      "overrideName": true
+    }
+  }
+}

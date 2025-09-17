@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+    "humao.rest-client",
+    "esbenp.prettier-vscode"
+  ]
+}
