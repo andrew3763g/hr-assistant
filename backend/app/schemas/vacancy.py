@@ -2,7 +2,7 @@
 """Pydantic v2 схемы для работы с вакансиями"""
 
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 

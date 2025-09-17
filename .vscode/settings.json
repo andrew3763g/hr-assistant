@@ -11,6 +11,10 @@
       "name": "hr-assistant-local"
     }
   ],
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": true,
+  "editor.fontFamily": "JetBrains Mono, Cascadia Code, Consolas, 'Courier New', monospace",
+  "editor.fontLigatures": true,
   "git.autofetch": true,
   "git.pullRebase": true,
   "git.enableSmartCommit": true,

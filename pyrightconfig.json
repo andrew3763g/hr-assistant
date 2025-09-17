@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/pyrightconfig",
+  "typeCheckingMode": "standard",
+  "pythonVersion": "3.11",
+  "reportMissingTypeStubs": false,
+  "venvPath": ".",
+  "venv": ".venv",
+  "strict": [
+    "backend/app/schemas/**",
+    "backend/app/services/**"
+  ],
+  "ignore": [
+    "alembic/**",
+    "migrations/**"
+  ]
+}

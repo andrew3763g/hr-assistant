@@ -5,7 +5,7 @@
 """
 
 from sqlalchemy import Column, String, Text, Integer, Float, Boolean, ForeignKey, Index
-from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
+from sqlalchemy.dialects.postgresql import JSON, TIMESTAMP
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -56,7 +56,7 @@ class Interview(Base):
     progress_percent = Column(Integer, default=0, comment="Прогресс прохождения в %")
     
     # === Вопросы интервью (JSONB) ===
-    questions_data = Column(JSONB, nullable=False, default=list, 
+    questions_data = Column(JSON, nullable=False, default=list, 
                           comment="Массив вопросов с их типами и настройками")
     # Структура: [{"id": 1, "text": "...", "type": "setup", "category": "identity", "required": true, ...}]
     
@@ -65,18 +65,18 @@ class Interview(Base):
     skipped_questions = Column(Integer, default=0, comment="Количество пропущенных вопросов")
     
     # === Ответы кандидата (JSONB) ===
-    answers_data = Column(JSONB, default=dict, 
+    answers_data = Column(JSON, default=dict, 
                         comment="Словарь ответов {question_id: answer_data}")
     # Структура: {"1": {"text": "...", "audio_url": "...", "duration_seconds": 120, "timestamp": "..."}}
     
     # === Аудио и транскрипции ===
-    audio_recordings = Column(JSONB, default=dict, 
+    audio_recordings = Column(JSON, default=dict, 
                             comment="Ссылки на аудиозаписи ответов")
-    transcriptions = Column(JSONB, default=dict, 
+    transcriptions = Column(JSON, default=dict, 
                           comment="Транскрипции ответов от Whisper")
     
     # === Технические данные ===
-    browser_info = Column(JSONB, default=dict, comment="Информация о браузере кандидата")
+    browser_info = Column(JSON, default=dict, comment="Информация о браузере кандидата")
     ip_address = Column(String(45), nullable=True, comment="IP адрес кандидата")
     
     # === Временные метрики ===
@@ -84,11 +84,11 @@ class Interview(Base):
     average_answer_time = Column(Float, nullable=True, comment="Среднее время ответа")
     
     # === Красные флаги и проблемы ===
-    red_flags_triggered = Column(JSONB, default=list, 
+    red_flags_triggered = Column(JSON, default=list, 
                                 comment="Сработавшие красные флаги")
-    identity_verification = Column(JSONB, default=dict, 
+    identity_verification = Column(JSON, default=dict, 
                                  comment="Результаты проверки личности")
-    technical_issues = Column(JSONB, default=list, 
+    technical_issues = Column(JSON, default=list, 
                             comment="Технические проблемы во время интервью")
     
     # === Временные метки (timestamptz) ===
@@ -152,7 +152,7 @@ class InterviewAnswer(Base):
     is_timeout = Column(Boolean, default=False)
     
     # === AI анализ ===
-    ai_analysis = Column(JSONB, default=dict, comment="Анализ ответа от GPT")
+    ai_analysis = Column(JSON, default=dict, comment="Анализ ответа от GPT")
     sentiment_score = Column(Float, nullable=True)
     relevance_score = Column(Float, nullable=True)
     

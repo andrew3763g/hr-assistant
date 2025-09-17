@@ -4,7 +4,7 @@
 """
 
 from sqlalchemy import Column, String, Text, Integer, Float, Boolean, ForeignKey, Index, UniqueConstraint
-from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
+from sqlalchemy.dialects.postgresql import JSON, TIMESTAMP
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -44,7 +44,7 @@ class Evaluation(Base):
     score_percentage = Column(Float, nullable=False, comment="Процент от максимума")
     
     # === Детальные баллы (JSONB) ===
-    scores_breakdown = Column(JSONB, default=dict, 
+    scores_breakdown = Column(JSON, default=dict, 
                             comment="Разбивка баллов по категориям")
     # Структура: {"basic_questions": 15, "skill_questions": 8, "confidence_bonus": 4.5, ...}
     
@@ -53,22 +53,22 @@ class Evaluation(Base):
     confidence_average = Column(Float, nullable=True, comment="Средняя уверенность")
     
     # === Проверка личности ===
-    identity_match = Column(JSONB, default=dict, 
+    identity_match = Column(JSON, default=dict, 
                           comment="Результаты сверки с резюме")
     # Структура: {"name": true, "gender": true, "age": false, "mismatch_details": "..."}
     
     # === Красные флаги ===
-    red_flags = Column(JSONB, default=list, 
+    red_flags = Column(JSON, default=list, 
                      comment="Список сработавших красных флагов")
-    auto_reject_reasons = Column(JSONB, default=list, 
+    auto_reject_reasons = Column(JSON, default=list, 
                                 comment="Причины автоматического отказа")
     
     # === Сильные и слабые стороны ===
-    strengths = Column(JSONB, default=list, comment="Выявленные сильные стороны")
-    weaknesses = Column(JSONB, default=list, comment="Выявленные слабые стороны")
+    strengths = Column(JSON, default=list, comment="Выявленные сильные стороны")
+    weaknesses = Column(JSON, default=list, comment="Выявленные слабые стороны")
     
     # === Соответствие навыкам ===
-    skills_match = Column(JSONB, default=dict, 
+    skills_match = Column(JSON, default=dict, 
                         comment="Соответствие требуемым навыкам")
     # Структура: {"Python": 0.8, "SQL": 0.9, "English": 0.5, ...}
     
@@ -79,14 +79,14 @@ class Evaluation(Base):
     
     # === Рекомендации ===
     hr_recommendations = Column(Text, nullable=True, comment="Рекомендации для HR")
-    follow_up_questions = Column(JSONB, default=list, 
+    follow_up_questions = Column(JSON, default=list, 
                                comment="Вопросы для очного интервью")
-    areas_to_probe = Column(JSONB, default=list, 
+    areas_to_probe = Column(JSON, default=list, 
                           comment="Области для углубленной проверки")
     
     # === GPT анализ ===
     gpt_summary = Column(Text, nullable=True, comment="Саммари от GPT")
-    gpt_personality_insights = Column(JSONB, default=dict, 
+    gpt_personality_insights = Column(JSON, default=dict, 
                                     comment="Инсайты о личности от GPT")
     gpt_cultural_fit = Column(Float, nullable=True, 
                             comment="Оценка культурного соответствия")
@@ -132,7 +132,7 @@ class InterviewEvaluation(Base):
     match_score = Column(Float, nullable=False, comment="Общий балл соответствия (0-100)")
 
     # === Детали матчинга (JSONB) ===
-    match_details = Column(JSONB, default=dict, comment="Детали соответствия")
+    match_details = Column(JSON, default=dict, comment="Детали соответствия")
     # Структура: {"skills_match": 0.8, "experience_match": 0.9, "education_match": 0.7, ...}
 
     skills_coverage = Column(Float, nullable=True, comment="Процент покрытия навыков")

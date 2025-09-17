@@ -48,7 +48,7 @@ from sqlalchemy import Column, Integer, String, Text, Float, JSON, DateTime, Boo
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from ..database import Base
 
@@ -187,62 +187,82 @@ class Candidate(Base):
 
     # === Методы модели ===
 
+
+    # === Candidate helpers ===
+
     def get_full_name(self) -> str:
-        """Возвращает полное ФИО"""
-        parts = [self.last_name, self.first_name]
-        if self.middle_name:
-            parts.append(self.middle_name)
-        return " ".join(filter(None, parts))
+        """?????????? ?????? ???, ????????? ????????????? ?????."""
+        last_name = cast(Optional[str], getattr(self, "last_name", None))
+        first_name = cast(Optional[str], getattr(self, "first_name", None))
+        middle_name = cast(Optional[str], getattr(self, "middle_name", None))
+        parts = [part for part in (last_name, first_name, middle_name) if isinstance(part, str) and part]
+        return " ".join(parts) if parts else ""
 
     def get_short_name(self) -> str:
-        """Возвращает короткое имя (Фамилия И.О.)"""
-        initials = f"{self.first_name[0]}."
-        if self.middle_name:
-            initials += f"{self.middle_name[0]}."
-        return f"{self.last_name} {initials}"
+        """?????????? ??????????? ??? (??????? ?.?.)."""
+        last_name = cast(Optional[str], getattr(self, "last_name", None)) or ""
+        first_name = cast(Optional[str], getattr(self, "first_name", None)) or ""
+        middle_name = cast(Optional[str], getattr(self, "middle_name", None))
+        initials = ""
+        if first_name:
+            initials = f"{first_name[0]}."
+        if middle_name:
+            initials += f"{middle_name[0]}."
+        short = f"{last_name} {initials}".strip()
+        return short or self.get_full_name() or last_name or first_name
 
     def get_age_from_birth_date(self) -> Optional[int]:
-        """Вычисляет возраст из даты рождения"""
-        if not self.birth_date:
+        """??????????? ??????? ?? ???? ????????, ???? ??? ??????."""
+        birth_date = cast(Optional[datetime], getattr(self, "birth_date", None))
+        if birth_date is None:
             return None
         today = datetime.now()
-        age = today.year - self.birth_date.year
-        if today.month < self.birth_date.month or \
-                (today.month == self.birth_date.month and today.day < self.birth_date.day):
+        age = today.year - birth_date.year
+        if today.month < birth_date.month or (
+            today.month == birth_date.month and today.day < birth_date.day
+        ):
             age -= 1
         return age
 
     def is_adult(self) -> bool:
-        """Проверяет совершеннолетие"""
-        age = self.age or self.get_age_from_birth_date()
-        return age >= 18 if age else False
+        """?????????, ?????? ?? ???????? ???????????????."""
+        age_attr = cast(Optional[int], getattr(self, "age", None))
+        age = age_attr or self.get_age_from_birth_date()
+        return bool(age and age >= 18)
 
     def has_required_experience(self, years: float) -> bool:
-        """Проверяет наличие требуемого опыта"""
-        return self.total_experience_years >= years if self.total_experience_years else False
+        """?????????, ?????????? ?? ??? ????? ? ?????????."""
+        total = cast(Optional[float], getattr(self, "total_experience_years", None))
+        return bool(total and total >= years)
 
-    def to_dict(self) -> Dict:
-        """Преобразует модель в словарь для API"""
+    def to_dict(self) -> Dict[str, Any]:
+        """?????????? ??????????????? ????????????? ?????????."""
+        gender = cast(Optional[Gender], getattr(self, "gender", None))
+        status = cast(Optional[CandidateStatus], getattr(self, "status", None))
+        education_level = cast(Optional[EducationLevel], getattr(self, "education_level", None))
+        created_at = cast(Optional[datetime], getattr(self, "created_at", None))
         return {
-            "id": self.id,
+            "id": getattr(self, "id", None),
             "full_name": self.get_full_name(),
-            "email": self.email,
-            "phone": self.phone,
-            "location": self.location,
-            "age": self.age,
-            "gender": self.gender.value if self.gender else None,
-            "position_desired": self.position_desired,
-            "experience_years": self.total_experience_years,
-            "education_level": self.education_level.value if self.education_level else None,
-            "skills": self.core_skills,
-            "status": self.status.value if self.status else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None
+            "email": cast(Optional[str], getattr(self, "email", None)),
+            "phone": cast(Optional[str], getattr(self, "phone", None)),
+            "location": cast(Optional[str], getattr(self, "location", None)),
+            "age": cast(Optional[int], getattr(self, "age", None)),
+            "gender": gender.value if isinstance(gender, Gender) else None,
+            "position_desired": cast(Optional[str], getattr(self, "position_desired", None)),
+            "experience_years": cast(Optional[float], getattr(self, "total_experience_years", None)),
+            "education_level": education_level.value if isinstance(education_level, EducationLevel) else None,
+            "skills": cast(Optional[List[str]], getattr(self, "core_skills", None)),
+            "status": status.value if isinstance(status, CandidateStatus) else None,
+            "created_at": created_at.isoformat() if isinstance(created_at, datetime) else None,
         }
 
-    def __repr__(self):
-        return f"<Candidate(id={self.id}, name={self.get_full_name()}, status={self.status.value})>"
+    def __repr__(self) -> str:
+        status = cast(Optional[CandidateStatus], getattr(self, "status", None))
+        status_value = status.value if isinstance(status, CandidateStatus) else None
+        return f"<Candidate(id={getattr(self, 'id', None)}, name={self.get_full_name()}, status={status_value})>"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.get_full_name()
 
 # === Индексы для оптимизации запросов ===

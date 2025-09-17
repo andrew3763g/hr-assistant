@@ -3,6 +3,12 @@
 
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
+
+
+def _empty_dict_list() -> List[Dict[str, Any]]:
+    """Typed helper to provide a list of dicts."""
+    return []
+
 from datetime import datetime
 from enum import Enum
 
@@ -54,7 +60,7 @@ class EvaluationResponse(BaseModel):
     rank_in_vacancy: Optional[int] = None
     percentile: Optional[float] = None
     
-    red_flags: List[Dict[str, Any]] = Field(default_factory=list)
+    red_flags: List[Dict[str, Any]] = Field(default_factory=_empty_dict_list)
     auto_reject_reasons: List[str] = Field(default_factory=list)
     
     report_generated: bool = False

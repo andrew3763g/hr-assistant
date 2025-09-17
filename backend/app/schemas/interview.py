@@ -5,8 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
-from datetime import datetime
 from enum import Enum
+
+
+def _empty_dict_list() -> List[Dict[str, Any]]:
+    """Typed helper to satisfy static analysis for default list of dicts."""
+    return []
 
 # class InterviewCreate(BaseModel):
 #     candidate_id: int
@@ -24,13 +28,36 @@ from enum import Enum
 
 
 class InterviewChatRequest(BaseModel):
+    """Payload for a single interview chat turn."""
+    model_config = ConfigDict(populate_by_name=True)
+
     interview_id: int
-    text: str
+    message: str = Field(
+        validation_alias="text",
+        serialization_alias="text",
+        description="Message provided by the candidate.",
+    )
+
+    @property
+    def text(self) -> str:
+        """Backward compatible accessor for legacy callers."""
+        return self.message
 
 
 class InterviewChatResponse(BaseModel):
+    """Response returned after processing a chat turn."""
+    model_config = ConfigDict(populate_by_name=True)
+
     interview_id: int
-    reply: str
+    response: str = Field(
+        validation_alias="reply",
+        serialization_alias="reply",
+        description="Interviewer reply text.",
+    )
+    is_complete: bool = Field(
+        default=False,
+        description="Signals that the automated interview can be concluded.",
+    )
 
 class InterviewStatus(str, Enum):
     CREATED = "created"
@@ -135,7 +162,7 @@ class InterviewDetail(InterviewResponse):
     total_duration_seconds: Optional[int] = None
     average_answer_time: Optional[float] = None
     
-    red_flags_triggered: List[Dict[str, Any]] = Field(default_factory=list)
+    red_flags_triggered: List[Dict[str, Any]] = Field(default_factory=_empty_dict_list)
     identity_verification: Dict[str, Any] = Field(default_factory=dict)
     technical_issues: List[str] = Field(default_factory=list)
     
@@ -156,3 +183,4 @@ class InterviewFilter(BaseModel):
 
 class InterviewStats(BaseModel):
     """Статистика по интервью"""
+

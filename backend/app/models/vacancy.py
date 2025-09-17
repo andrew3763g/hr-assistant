@@ -8,7 +8,7 @@ from sqlalchemy import Column, Integer, String, Text, Float, JSON, DateTime, Boo
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence, cast
 
 from ..database import Base
 
@@ -182,66 +182,76 @@ class Vacancy(Base):
             return False
         return datetime.utcnow() > self.deadline_at
 
-    def get_salary_range(self) -> str:
-        """Возвращает зарплатную вилку как строку"""
-        if not self.salary_min and not self.salary_max:
-            return "По договоренности"
 
-        if self.salary_min and self.salary_max:
-            return f"{self.salary_min:,} - {self.salary_max:,} {self.salary_currency}"
-        elif self.salary_min:
-            return f"от {self.salary_min:,} {self.salary_currency}"
-        else:
-            return f"до {self.salary_max:,} {self.salary_currency}"
+    def get_salary_range(self) -> str:
+        """????????? ???????????????? ???????? ????????."""
+        salary_min = cast(Optional[int], getattr(self, "salary_min", None))
+        salary_max = cast(Optional[int], getattr(self, "salary_max", None))
+        currency = cast(Optional[str], getattr(self, "salary_currency", None)) or ""
+        if not salary_min and not salary_max:
+            return "???????? ?? ??????"
+        if salary_min and salary_max:
+            return f"{salary_min:,} - {salary_max:,} {currency}".strip()
+        if salary_min:
+            return f"?? {salary_min:,} {currency}".strip()
+        return f"?? {salary_max:,} {currency}".strip()
 
     def get_experience_range(self) -> str:
-        """Возвращает требуемый опыт как строку"""
-        if self.experience_years_min == 0 and not self.experience_years_max:
-            return "Без опыта"
-
-        if self.experience_years_min and self.experience_years_max:
-            return f"{self.experience_years_min}-{self.experience_years_max} лет"
-        elif self.experience_years_min:
-            return f"от {self.experience_years_min} лет"
-        else:
-            return f"до {self.experience_years_max} лет"
+        """?????????? ?????? ? ?????????? ?????????? ?????."""
+        min_years = cast(Optional[float], getattr(self, "experience_years_min", None))
+        max_years = cast(Optional[float], getattr(self, "experience_years_max", None))
+        if not min_years and not max_years:
+            return "??? ??????????"
+        if min_years and max_years:
+            return f"{min_years}-{max_years} ???"
+        if min_years:
+            return f"?? {min_years} ???"
+        return f"?? {max_years} ???"
 
     def get_all_requirements(self) -> List[str]:
-        """Возвращает все требования (обязательные + желательные)"""
-        all_req = list(self.requirements_mandatory or [])
-        all_req.extend(self.requirements_optional or [])
-        return all_req
+        """?????????? ???????????? ? ??????????? ??????????."""
+        mandatory = cast(Sequence[str] | None, getattr(self, "requirements_mandatory", None)) or []
+        optional = cast(Sequence[str] | None, getattr(self, "requirements_optional", None)) or []
+        return list(mandatory) + list(optional)
 
     def get_all_skills(self) -> List[str]:
-        """Возвращает все навыки (hard + soft)"""
-        all_skills = list(self.hard_skills or [])
-        all_skills.extend(self.soft_skills or [])
-        return all_skills
+        """??????????? hard ? soft ??????."""
+        hard = cast(Sequence[str] | None, getattr(self, "hard_skills", None)) or []
+        soft = cast(Sequence[str] | None, getattr(self, "soft_skills", None)) or []
+        return list(hard) + list(soft)
 
-    def to_dict(self) -> Dict:
-        """Преобразует модель в словарь для API"""
+    def to_dict(self) -> Dict[str, Any]:
+        """?????????? ??????????????? ????????????? ????????."""
+        employment_type = cast(Optional[EmploymentType], getattr(self, "employment_type", None))
+        work_format = cast(Optional[WorkFormat], getattr(self, "work_format", None))
+        status = cast(Optional[VacancyStatus], getattr(self, "status", None))
+        created_at = cast(Optional[datetime], getattr(self, "created_at", None))
         return {
-            "id": self.id,
-            "title": self.title,
-            "company": self.company_name,
-            "location": self.location,
-            "department": self.department,
-            "employment_type": self.employment_type.value if self.employment_type else None,
-            "work_format": self.work_format.value if self.work_format else None,
+            "id": getattr(self, "id", None),
+            "title": cast(Optional[str], getattr(self, "title", None)),
+            "company": cast(Optional[str], getattr(self, "company_name", None)),
+            "location": cast(Optional[str], getattr(self, "location", None)),
+            "department": cast(Optional[str], getattr(self, "department", None)),
+            "employment_type": employment_type.value if isinstance(employment_type, EmploymentType) else None,
+            "work_format": work_format.value if isinstance(work_format, WorkFormat) else None,
             "experience_required": self.get_experience_range(),
             "salary_range": self.get_salary_range(),
             "skills": self.get_all_skills(),
-            "requirements": self.requirements_mandatory,
-            "status": self.status.value if self.status else None,
-            "is_urgent": self.is_urgent,
-            "created_at": self.created_at.isoformat() if self.created_at else None
+            "requirements": cast(Optional[Sequence[str]], getattr(self, "requirements_mandatory", None)),
+            "status": status.value if isinstance(status, VacancyStatus) else None,
+            "is_urgent": cast(Optional[bool], getattr(self, "is_urgent", None)),
+            "created_at": created_at.isoformat() if isinstance(created_at, datetime) else None,
         }
 
-    def __repr__(self):
-        return f"<Vacancy(id={self.id}, title={self.title}, status={self.status.value})>"
+    def __repr__(self) -> str:
+        status = cast(Optional[VacancyStatus], getattr(self, "status", None))
+        status_value = status.value if isinstance(status, VacancyStatus) else None
+        return f"<Vacancy(id={getattr(self, 'id', None)}, title={getattr(self, 'title', None)}, status={status_value})>"
 
-    def __str__(self):
-        return f"{self.title} ({self.company_name})"
+    def __str__(self) -> str:
+        title = cast(Optional[str], getattr(self, "title", None)) or ""
+        company = cast(Optional[str], getattr(self, "company_name", None)) or ""
+        return f"{title} ({company})".strip()
 
 # === Индексы для оптимизации запросов ===
 # Создаются автоматически при миграции БД

@@ -154,12 +154,15 @@ async def upload_resume(file: UploadFile = File(...)):
     """Загрузка и парсинг резюме"""
 
     # Определяем тип файла
+    filename = file.filename or ''
+    lowered_name = filename.lower()
+
     file_type = 'txt'  # default
-    if file.filename.endswith('.pdf'):
+    if lowered_name.endswith('.pdf'):
         file_type = 'pdf'
-    elif file.filename.endswith('.docx'):
+    elif lowered_name.endswith('.docx'):
         file_type = 'docx'
-    elif file.filename.endswith('.txt'):
+    elif lowered_name.endswith('.txt'):
         file_type = 'txt'
 
     # Читаем содержимое
@@ -176,7 +179,7 @@ async def upload_resume(file: UploadFile = File(...)):
         # Готовим ответ
         response = {
             "resume_id": resume_id,
-            "filename": file.filename,
+            "filename": filename,
             "name": parsed_data.get("name", ""),
             "email": parsed_data.get("email", ""),
             "phone": parsed_data.get("phone", ""),
@@ -193,7 +196,7 @@ async def upload_resume(file: UploadFile = File(...)):
         # Возвращаем mock данные при ошибке
         return {
             "resume_id": random.randint(1000, 9999),
-            "filename": file.filename,
+            "filename": filename,
             "name": "Test Candidate",
             "email": "test@example.com",
             "phone": "+7 900 123-45-67",
