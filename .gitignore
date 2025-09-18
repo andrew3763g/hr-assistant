@@ -16,6 +16,7 @@ backend/temp/
 # Входящие документы, если это «рабочая» папка
 inbox/
 # Secrets / tokens
+.env
 .venv*/
 venv/
 alembic/*.log
