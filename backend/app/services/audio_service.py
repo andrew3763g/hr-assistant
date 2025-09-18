@@ -1,4 +1,5 @@
-from __future__ import annotations
+﻿from __future__ import annotations
+
 """
 Аудио-сервис (интерфейс). Реализации добавим позже (TTS/STT через внешний API).
 
@@ -16,27 +17,29 @@ class AudioService(Protocol):
 
     def transcribe(self, audio: bytes) -> str:
         """STT: аудио → текст."""
+        ...
 
     def synthesize(self, text: str) -> bytes:
         """TTS: текст → аудио (например, WAV/MP3)."""
+        ...
 
 
 class StubAudioService(AudioService):
-    """Заглушка: поднимает NotImplementedError, чтобы не забыть внедрить позже."""
+    """Заглушка: возвращает статичный результат для тестов."""
+
+    _TRANSCRIBE_RESPONSE: str = "[stub] transcription unavailable"
+    _SYNTH_RESPONSE: bytes = b""
 
     def transcribe(self, audio: bytes) -> str:  # noqa: ARG002
-        raise NotImplementedError("AudioService: распознавание речи не настроено (provider=stub).")
+        return self._TRANSCRIBE_RESPONSE
 
     def synthesize(self, text: str) -> bytes:  # noqa: ARG002
-        raise NotImplementedError("AudioService: синтез речи не настроен (provider=stub).")
+        return self._SYNTH_RESPONSE
 
 
 def get_audio_service() -> AudioService:
-    """
-    Фабрика провайдера. Когда подключим реальный API, добавим сюда ветку.
-    """
+    """Фабрика провайдера. Заглушка — до появления реальной интеграции."""
     provider = (getattr(settings, "AUDIO_PROVIDER", None) or "stub").lower()
-    # пример будущей ветки:
-    # if provider == "gcp":
-    #     return GoogleCloudAudioService(...)
-    return StubAudioService()
+    if provider == "stub":
+        return StubAudioService()
+    raise NotImplementedError(f"Audio provider '{provider}' is not configured.")

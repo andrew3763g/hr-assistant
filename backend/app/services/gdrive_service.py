@@ -1,51 +1,52 @@
+﻿from __future__ import annotations
 
-from __future__ import annotations
-
+import importlib
 import io
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, Iterable, List, Mapping, Optional, Protocol, TypedDict, cast
 
 from backend.app.config import settings
 
 
-class FileStorage:
-    """Мини-интерфейс файлового хранилища."""
+class FileMetadata(TypedDict, total=False):
+    id: str
+    name: str
+    mimeType: str
+    size: int
+    modifiedTime: str
 
-    def upload(self, data: bytes, filename: str, folder_key: str) -> str:  # pragma: no cover - интерфейс
-        raise NotImplementedError
 
-    def download(self, file_id: str) -> bytes:  # pragma: no cover - интерфейс
-        raise NotImplementedError
+class FileStorage(Protocol):
+    def upload(self, data: bytes, filename: str, folder_key: str) -> str:
+        ...
 
-    def delete(self, file_id: str) -> None:  # pragma: no cover - интерфейс
-        raise NotImplementedError
+    def download(self, file_id: str) -> bytes:
+        ...
 
-    def list_files(self, folder_key: str) -> List[Dict]:  # pragma: no cover - интерфейс
-        raise NotImplementedError
+    def delete(self, file_id: str) -> None:
+        ...
+
+    def list_files(self, folder_key: str) -> List[FileMetadata]:
+        ...
 
     def find_by_name(self, name: str, folder_key: str = "resumes") -> Optional[str]:
-        for f in self.list_files(folder_key):
-            if f.get("name") == name:
-                return f.get("id")
-        return None
+        ...
 
 
-class LocalStorage(FileStorage):
-    """Простое локальное хранилище в папке /uploads/{folder_key}."""
-
+class LocalStorage:
     def __init__(self, root: Optional[Path] = None) -> None:
         self.root = root or (Path(__file__).resolve().parents[2] / "uploads")
         self.root.mkdir(parents=True, exist_ok=True)
 
     def _folder(self, key: str) -> Path:
-        p = self.root / key
-        p.mkdir(parents=True, exist_ok=True)
-        return p
+        folder = self.root / key
+        folder.mkdir(parents=True, exist_ok=True)
+        return folder
 
     def upload(self, data: bytes, filename: str, folder_key: str) -> str:
-        p = self._folder(folder_key) / filename
-        p.write_bytes(data)
-        return str(p)
+        path = self._folder(folder_key) / filename
+        path.write_bytes(data)
+        return str(path)
 
     def download(self, file_id: str) -> bytes:
         return Path(file_id).read_bytes()
@@ -56,85 +57,101 @@ class LocalStorage(FileStorage):
         except Exception:
             pass
 
-    def list_files(self, folder_key: str) -> List[Dict]:
-        p = self._folder(folder_key)
-        out: List[Dict] = []
-        for fp in p.iterdir():
-            if fp.is_file():
-                out.append(
+    def list_files(self, folder_key: str) -> List[FileMetadata]:
+        folder = self._folder(folder_key)
+        items: List[FileMetadata] = []
+        for path in folder.iterdir():
+            if path.is_file():
+                stat = path.stat()
+                items.append(
                     {
-                        "id": str(fp),
-                        "name": fp.name,
+                        "id": str(path),
+                        "name": path.name,
                         "mimeType": "application/octet-stream",
-                        "size": fp.stat().st_size,
+                        "size": stat.st_size,
                     }
                 )
-        return out
+        return items
+
+    def find_by_name(self, name: str, folder_key: str = "resumes") -> Optional[str]:
+        for metadata in self.list_files(folder_key):
+            if metadata.get("name") == name:
+                return metadata.get("id")
+        return None
 
 
-class GoogleDriveStorage(FileStorage):
-    """Хранилище в Google Drive через Service Account.
-    Поддерживает скачивание *как бинарных файлов*, так и Google Docs/Sheets/Slides — экспорт в PDF.
-    """
+def _coerce_int(value: object) -> int:
+    try:
+        return int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0
 
+
+def _extract_folder_id(candidate: object) -> Optional[str]:
+    if isinstance(candidate, str):
+        return candidate
+    if isinstance(candidate, Mapping):
+        mapping_candidate = cast(Mapping[str, object], candidate)
+        raw_value = mapping_candidate.get("id")
+        if isinstance(raw_value, str):
+            return raw_value
+    return None
+
+
+class GoogleDriveStorage:
     def __init__(self) -> None:
-        try:
-            from google.oauth2.service_account import Credentials
-            from googleapiclient.discovery import build
-            from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload  # noqa: F401  - ссылочные
-        except Exception as e:  # pragma: no cover
+        try:  # pragma: no cover - требует внешние зависимости
+            credentials_module = importlib.import_module("google.oauth2.service_account")
+            discovery_module = importlib.import_module("googleapiclient.discovery")
+            http_module = importlib.import_module("googleapiclient.http")
+        except ModuleNotFoundError as exc:
             raise RuntimeError(
                 "Google Drive backend requires google-api-python-client & google-auth. "
                 "Install them and provide GOOGLE_SERVICE_ACCOUNT_FILE."
-            ) from e
+            ) from exc
+
+        Credentials = getattr(credentials_module, "Credentials")
+        MediaIoBaseDownload = getattr(http_module, "MediaIoBaseDownload")
+        MediaIoBaseUpload = getattr(http_module, "MediaIoBaseUpload")
+        build = getattr(discovery_module, "build")
 
         scopes = ["https://www.googleapis.com/auth/drive"]
         sa_file = settings.GOOGLE_SERVICE_ACCOUNT_FILE
         if not sa_file:
             raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_FILE is not set in settings/.env")
 
-        self._Credentials = Credentials  # keep for typing
-        self._MediaIoBaseDownload = MediaIoBaseDownload
-        self._MediaIoBaseUpload = MediaIoBaseUpload
+        self._media_download_cls = MediaIoBaseDownload
+        self._media_upload_cls = MediaIoBaseUpload
 
         creds = Credentials.from_service_account_file(sa_file, scopes=scopes)
         self.service = build("drive", "v3", credentials=creds, cache_discovery=False)
 
-    # ---------- helpers ----------
-
     @staticmethod
-    def _folders_map() -> Dict[str, Any]:
-        """Возвращает словарь { key -> id/obj } из настроек, устойчиво к разным структурам."""
+    def _folders_map() -> Dict[str, object]:
         cfg = settings.GOOGLE_DRIVE_FOLDERS
-        # cfg может быть pydantic-моделью с полем folders
         folders = getattr(cfg, "folders", None)
-        if folders is None and isinstance(cfg, dict):
-            folders = cfg.get("folders", cfg)
         if folders is None:
-            folders = cfg
-        return folders or {}
+            try:
+                folders = cfg.get("folders", cfg)  # type: ignore[call-arg]
+            except AttributeError:
+                folders = cfg
+        return cast(Dict[str, object], folders or {})
 
     @classmethod
     def _folder_id(cls, key: str) -> str:
-        m = cls._folders_map()
-        item = m.get(key)
-        if isinstance(item, dict):
-            fid = item.get("id")
-        else:
-            fid = item
-        if not fid or not isinstance(fid, str):
+        mapping: Mapping[str, object] = cls._folders_map()
+        folder_id = _extract_folder_id(mapping.get(key))
+        if not folder_id:
             raise KeyError(f"Folder key '{key}' is not configured in GOOGLE_DRIVE_FOLDERS")
-        return fid
+        return folder_id
 
-    # ---------- API ----------
-
-    def list_files(self, folder_key: str) -> List[Dict]:
+    def list_files(self, folder_key: str) -> List[FileMetadata]:
         folder_id = self._folder_id(folder_key)
-        files: List[Dict] = []
+        files: List[FileMetadata] = []
         page_token: Optional[str] = None
         while True:
             resp = (
-                self.service.files()  # type: ignore[attr-defined]
+                self.service.files()  # type: ignore[no-untyped-call, attr-defined]
                 .list(
                     q=f"'{folder_id}' in parents and trashed=false",
                     fields="nextPageToken, files(id,name,mimeType,modifiedTime,size)",
@@ -145,18 +162,27 @@ class GoogleDriveStorage(FileStorage):
                 )
                 .execute()
             )
-            files.extend(resp.get("files", []))
-            page_token = resp.get("nextPageToken")
+            files_payload = cast(Iterable[Mapping[str, object]], resp.get("files", []))
+            for item in files_payload:
+                files.append(
+                    {
+                        "id": cast(str, item.get("id", "")),
+                        "name": cast(str, item.get("name", "")),
+                        "mimeType": cast(str, item.get("mimeType", "")),
+                        "size": _coerce_int(item.get("size", 0)),
+                        "modifiedTime": cast(str, item.get("modifiedTime", "")),
+                    }
+                )
+            page_token = cast(Optional[str], resp.get("nextPageToken"))
             if not page_token:
                 break
         return files
 
     def find_by_name(self, name: str, folder_key: str = "resumes") -> Optional[str]:
         folder_id = self._folder_id(folder_key)
-        # Аккуратно экранируем одинарные кавычки
         safe_name = name.replace("\\", "\\\\").replace("'", "\\'")
         resp = (
-            self.service.files()  # type: ignore[attr-defined]
+            self.service.files()  # type: ignore[no-untyped-call, attr-defined]
             .list(
                 q=f"name = '{safe_name}' and '{folder_id}' in parents and trashed=false",
                 fields="files(id,name)",
@@ -166,46 +192,51 @@ class GoogleDriveStorage(FileStorage):
             )
             .execute()
         )
-        files = resp.get("files", [])
+        files = cast(List[Mapping[str, object]], resp.get("files", []))
         if files:
-            return files[0].get("id")
+            file_id = files[0].get("id")
+            return file_id if isinstance(file_id, str) else None
         return None
 
     def download(self, file_id: str) -> bytes:
         meta = (
-            self.service.files()  # type: ignore[attr-defined]
+            self.service.files()  # type: ignore[no-untyped-call, attr-defined]
             .get(fileId=file_id, fields="id,name,mimeType,size")
             .execute()
         )
-        mime = meta.get("mimeType", "")
-        buf = io.BytesIO()
+        mime = cast(str, meta.get("mimeType", ""))
+        buffer = io.BytesIO()
         if mime.startswith("application/vnd.google-apps"):
-            # Это «Google файл» — экспортируем в PDF
-            export_mime = "application/pdf"
-            request = self.service.files().export_media(fileId=file_id, mimeType=export_mime)  # type: ignore[attr-defined]
+            request = self.service.files().export_media(  # type: ignore[no-untyped-call, attr-defined]
+                fileId=file_id,
+                mimeType="application/pdf",
+            )
         else:
-            request = self.service.files().get_media(fileId=file_id)  # type: ignore[attr-defined]
+            request = self.service.files().get_media(fileId=file_id)  # type: ignore[no-untyped-call, attr-defined]
 
-        downloader = self._MediaIoBaseDownload(buf, request)
+        downloader = self._media_download_cls(buffer, request)
         done = False
         while not done:
             _, done = downloader.next_chunk()
-        return buf.getvalue()
+        return buffer.getvalue()
 
     def upload(self, data: bytes, filename: str, folder_key: str) -> str:
         folder_id = self._folder_id(folder_key)
-        media = self._MediaIoBaseUpload(io.BytesIO(data), mimetype="application/octet-stream", resumable=True)
-        file_meta = {"name": filename, "parents": [folder_id]}
+        media = self._media_upload_cls(io.BytesIO(data), mimetype="application/octet-stream", resumable=True)
+        file_meta: Dict[str, object] = {"name": filename, "parents": [folder_id]}
         resp = (
-            self.service.files()  # type: ignore[attr-defined]
+            self.service.files()  # type: ignore[no-untyped-call, attr-defined]
             .create(body=file_meta, media_body=media, fields="id")
             .execute()
         )
-        return resp["id"]
+        identifier = resp.get("id")
+        if not isinstance(identifier, str):  # pragma: no cover - defensive
+            raise RuntimeError("Google Drive did not return file id")
+        return identifier
 
     def delete(self, file_id: str) -> None:
         try:
-            self.service.files().delete(fileId=file_id).execute()  # type: ignore[attr-defined]
+            self.service.files().delete(fileId=file_id).execute()  # type: ignore[no-untyped-call, attr-defined]
         except Exception:
             pass
 

@@ -1,5 +1,5 @@
-from __future__ import annotations
-from typing import Dict, Any, Iterable
+﻿from __future__ import annotations
+from typing import Dict, Any
 import re
 
 def _tokenize(s: str) -> set[str]:

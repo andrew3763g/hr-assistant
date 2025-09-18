@@ -3,6 +3,7 @@
   "typeCheckingMode": "standard",
   "pythonVersion": "3.11",
   "reportMissingTypeStubs": false,
+  "reportMissingImports": false,
   "venvPath": ".",
   "venv": ".venv",
   "strict": [
@@ -11,6 +12,8 @@
   ],
   "ignore": [
     "alembic/**",
-    "migrations/**"
+    "migrations/**",
+    "migrations_tmp/**",
+    "tmp_files/**"
   ]
 }

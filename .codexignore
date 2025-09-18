@@ -1,0 +1,17 @@
+.git/
+.venv*/
+__pycache__/
+node_modules/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+downloads/
+data/
+docs/gdrive/
+*.csv
+*.json
+*.pdf
+*.png
+*.jpg
+*.mp4
+*.zip
