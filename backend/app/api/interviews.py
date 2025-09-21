@@ -2,13 +2,26 @@
 # backend/app/api/interviews.py
 from __future__ import annotations
 
+import contextlib
+import shutil
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, TypedDict, cast
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from backend.app.config import settings
 from backend.app.models import Candidate, Vacancy
 from backend.app.models.interview import Interview, InterviewStatus
 from backend.app.models.interview_message import InterviewMessage, MessageRole
@@ -20,6 +33,14 @@ from backend.app.schemas.interview import (
     InterviewResponse,
 )
 from backend.app.services.ai_service import AIInterviewer
+from backend.app.services.gdrive_service import get_storage
+from backend.app.services.media_joiner import (
+    ensure_ffmpeg,
+    extract_wav,
+    join_webm_chunks,
+)
+
+from pydantic import BaseModel
 
 router = APIRouter()
 ai_service = AIInterviewer()
@@ -50,6 +71,26 @@ class EvaluationPayload(TypedDict, total=False):
     weaknesses: List[str]
     recommendation: str
     hr_comment: str
+
+
+class FinalizeRequest(BaseModel):
+    session_id: str
+
+
+_SAFE_CHARS = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_")
+
+
+def _sanitize_component(value: str, name: str) -> str:
+    filtered = "".join(ch for ch in value if ch in _SAFE_CHARS)
+    if not filtered:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid {name}")
+    return filtered
+
+
+def _media_root() -> Path:
+    root = Path(settings.MEDIA_UPLOAD_ROOT).expanduser().resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    return root
 
 
 def _get_status(interview: Interview) -> str:
@@ -323,3 +364,118 @@ def get_interview_report(interview_id: int, db: Session = Depends(get_db)):
             "summary": getattr(interview, "ai_summary", None),
         },
     }
+
+
+@router.post("/upload/chunk")
+async def upload_chunk(
+    session_id: str = Form(...),
+    kind: str = Form(...),
+    index: int = Form(...),
+    chunk: UploadFile = File(...),
+):
+    safe_session = _sanitize_component(session_id, "session_id")
+    safe_kind = _sanitize_component(kind, "kind")
+
+    root = _media_root()
+    chunk_dir = root / safe_session / safe_kind
+    chunk_dir.mkdir(parents=True, exist_ok=True)
+
+    chunk_path = chunk_dir / f"{int(index):06d}.webm"
+
+    with chunk_path.open("wb") as buffer:
+        while True:
+            data = await chunk.read(1024 * 1024)
+            if not data:
+                break
+            buffer.write(data)
+
+    await chunk.close()
+
+    return {
+        "ok": True,
+        "stored": str(chunk_path.relative_to(root)),
+    }
+
+
+@router.post("/upload/finalize")
+def finalize_upload(payload: FinalizeRequest = Body(...)):
+    safe_session = _sanitize_component(payload.session_id, "session_id")
+
+    root = _media_root()
+    session_dir = (root / safe_session)
+    if not session_dir.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    ffmpeg_bin = settings.FFMPEG_BIN or "ffmpeg"
+    ffmpeg_ready = ensure_ffmpeg(ffmpeg_bin)
+    if not ffmpeg_ready:
+        message = f"FFmpeg binary '{ffmpeg_bin}' is not available"
+        if settings.EXTRACT_WAV:
+            raise RuntimeError(f"{message}; cannot extract WAV while EXTRACT_WAV=1.")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=message)
+
+    storage = get_storage()
+
+    artifacts: Dict[str, Dict[str, Optional[str]]] = {}
+    processed_dirs: List[Path] = []
+
+    for kind_dir in sorted(p for p in session_dir.iterdir() if p.is_dir()):
+        chunk_files = sorted(kind_dir.glob("*.webm"))
+        if not chunk_files:
+            continue
+
+        final_webm = kind_dir / "final.webm"
+        if final_webm.exists():
+            final_webm.unlink()
+
+        join_webm_chunks(chunk_files, final_webm, ffmpeg_bin=ffmpeg_bin)
+
+        wav_path: Optional[Path] = None
+        if settings.EXTRACT_WAV:
+            wav_path = kind_dir / "final.wav"
+            if wav_path.exists():
+                wav_path.unlink()
+            extract_wav(final_webm, wav_path, ffmpeg_bin=ffmpeg_bin)
+
+        kind_key = kind_dir.name
+        video_data = final_webm.read_bytes()
+        video_name = f"{safe_session}_{kind_key}.webm"
+        video_link = storage.upload(video_data, video_name, folder_key="VIDEO")
+
+        audio_link: Optional[str] = None
+        if wav_path and wav_path.exists():
+            audio_data = wav_path.read_bytes()
+            audio_name = f"{safe_session}_{kind_key}.wav"
+            audio_link = storage.upload(audio_data, audio_name, folder_key="AUDIO")
+
+        artifacts[kind_key] = {
+            "webm": video_link,
+            "wav": audio_link,
+        }
+
+        processed_dirs.append(kind_dir)
+
+    if not artifacts:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No media chunks found")
+
+    for directory in processed_dirs:
+        shutil.rmtree(directory, ignore_errors=True)
+
+    with contextlib.suppress(OSError):
+        session_dir.rmdir()
+
+    return {
+        "session_id": safe_session,
+        "artifacts": artifacts,
+    }
+
+
+@router.get("/admin/check/ffmpeg")
+def admin_check_ffmpeg():
+    ffmpeg_bin = settings.FFMPEG_BIN or "ffmpeg"
+    if ensure_ffmpeg(ffmpeg_bin):
+        return {"ok": True, "bin": ffmpeg_bin}
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail={"ok": False, "bin": ffmpeg_bin},
+    )

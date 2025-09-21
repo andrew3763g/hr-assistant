@@ -82,6 +82,35 @@ class Settings(BaseSettings):
     GOOGLE_DRIVE_FOLDERS_FILE: Optional[Path] = Field(default=None)
     GOOGLE_DRIVE_FOLDERS: Dict[str, str] = Field(default_factory=dict)
 
+    FFMPEG_BIN: str = Field(default="ffmpeg")
+    FFPROBE_BIN: str = Field(default="ffprobe")
+    EXTRACT_WAV: int = Field(default=1)
+    MEDIA_TIMESLICE_MS: int = Field(default=45000)
+    MEDIA_MAX_CHUNKS: int = Field(default=80)
+    MEDIA_UPLOAD_ROOT: str = Field(default="uploads")
+    CORS_ALLOW_ORIGINS: list[str] = Field(default_factory=lambda: ["*"])
+    GD_BACKUPS_FOLDER_ID: str = Field(default="")
+    ADMIN_TOKEN: str = Field(default="changeme")
+
+    @field_validator("CORS_ALLOW_ORIGINS", mode="before")
+    @classmethod
+    def _normalize_cors_origins(cls, value: Any) -> Any:
+        if value is None:
+            return value
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped:
+                return []
+            if stripped.startswith("["):
+                try:
+                    parsed = json.loads(stripped)
+                    if isinstance(parsed, list):
+                        return parsed
+                except json.JSONDecodeError:
+                    pass
+            return [item.strip() for item in stripped.split(",") if item.strip()]
+        return value
+
     @model_validator(mode="before")
     @classmethod
     def _normalize_gdrive_folders(cls, data: Dict[str, Any]) -> Dict[str, Any]:

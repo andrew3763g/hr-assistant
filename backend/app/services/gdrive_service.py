@@ -135,7 +135,11 @@ class GoogleDriveStorage:
                 folders = cfg.get("folders", cfg)  # type: ignore[call-arg]
             except AttributeError:
                 folders = cfg
-        return cast(Dict[str, object], folders or {})
+        mapping = dict(cast(Dict[str, object], folders or {}))
+        backups_id = getattr(settings, "GD_BACKUPS_FOLDER_ID", None)
+        if backups_id and "BACKUPS" not in mapping:
+            mapping["BACKUPS"] = backups_id
+        return mapping
 
     @classmethod
     def _folder_id(cls, key: str) -> str:

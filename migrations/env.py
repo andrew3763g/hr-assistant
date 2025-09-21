@@ -20,7 +20,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 load_dotenv(PROJECT_ROOT / ".env")
-load_dotenv(PROJECT_ROOT / ".env.alembic", override=True)
+load_dotenv(PROJECT_ROOT / ".env.docker", override=True)
 
 # Import app bits AFTER sys.path/.env
 import backend.app.models  # noqa: F401  # registers all models

@@ -1,0 +1,15 @@
+services:
+  devcontainer:
+    environment:
+      PYTHONPATH: /workspaces/hr-assistant
+    image: mcr.microsoft.com/devcontainers/python:3.11
+    user: vscode
+    init: true
+    tty: true
+    command: sleep infinity
+    working_dir: /workspaces/hr-assistant
+    volumes:
+      - .:/workspaces/hr-assistant
+    depends_on:
+      postgres:
+        condition: service_started

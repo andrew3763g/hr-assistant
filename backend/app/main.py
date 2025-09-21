@@ -7,6 +7,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.config import settings
+
 # Роутеры API
 from backend.app.api.imports import router as imports_router
 from backend.app.api.matching import router as matching_router
@@ -14,6 +16,7 @@ from backend.app.api.vacancies import router as vacancies_router
 from backend.app.api.interviews import router as interviews_router
 from backend.app.api.config import router as config_router
 from backend.app.api.resume_upload import router as resume_upload_router
+from backend.app.api.admin_db import router as admin_db_router
 
 # ВАЖНО: никаких Base.metadata.create_all — миграциями управляет Alembic
 
@@ -26,7 +29,7 @@ app = FastAPI(
 # CORS (пока максимально открытый для удобства разработки)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ALLOW_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,6 +42,7 @@ app.include_router(interviews_router,  prefix="/interviews", tags=["Interviews"]
 app.include_router(matching_router,    prefix="/matching",   tags=["Matching"])
 app.include_router(config_router,      prefix="/config",     tags=["Config"])
 app.include_router(resume_upload_router, prefix="/resume",   tags=["Resume"])
+app.include_router(admin_db_router,    prefix="/",           tags=["Admin"])
 
 # Базовые health/doc endpoints
 @app.get("/")
