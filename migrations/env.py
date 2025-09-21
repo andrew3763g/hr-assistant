@@ -1,5 +1,7 @@
 # migrations/env.py
 from __future__ import annotations
+from backend.app.config import settings
+from backend.app.database import Base
 
 import os
 import sys
@@ -10,6 +12,8 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 from dotenv import load_dotenv
 
+load_dotenv()
+
 # --- bootstrap project and .env ---
 PROJECT_ROOT = Path(__file__).resolve().parents[1]  # .../hr-assistant
 if str(PROJECT_ROOT) not in sys.path:
@@ -19,8 +23,6 @@ load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv(PROJECT_ROOT / ".env.alembic", override=True)
 
 # Import app bits AFTER sys.path/.env
-from backend.app.database import Base
-from backend.app.config import settings
 import backend.app.models  # noqa: F401  # registers all models
 
 config = context.config
