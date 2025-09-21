@@ -1,0 +1,5 @@
+*
+!.gitkeep
+# !README.md   # если решишь хранить README
+# !LICENSE     # если решишь хранить LICENSE
+!.gitignore

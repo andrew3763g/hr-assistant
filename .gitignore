@@ -22,3 +22,6 @@ venv/
 alembic/*.log
 docs/codex_notes/SESSION_*.md
 docs/gdrive/drive*.json
+# --- FFmpeg vendor drop ---
+/tools/ffmpeg/*                 # игнорировать всё внутри папки
+!/tools/ffmpeg/.gitkeep         # пустышка, чтобы каталог существовал в репозитории
