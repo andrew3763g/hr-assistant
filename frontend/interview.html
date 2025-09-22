@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>HR Assistant — Интервью</title>
+</head>
+<body>
+  <h1>Интервью</h1>
+
+  <video id="preview" autoplay playsinline muted
+         style="width:640px;height:auto;background:#000"></video>
+
+  <div>
+    <button id="btnStart">НАЧАТЬ</button>
+    <button id="btnNext">СЛЕДУЮЩИЙ ВОПРОС</button>
+    <button id="btnStop">ЗАКОНЧИТЬ</button>
+  </div>
+
+  <pre id="log"></pre>
+
+  <!-- 1) прокидываем конфиг из Python -->
+  <script id="app-config" type="application/json">
+  {{ {
+      "MEDIA_TIMESLICE_MS": settings.MEDIA_TIMESLICE_MS,
+      "MEDIA_MAX_CHUNKS":  settings.MEDIA_MAX_CHUNKS,
+      "SESSION_ID":        "interview-" ~ uuid4(),   # любой уникальный id
+      "MEDIA_UPLOAD_BASE": "/api/interviews"
+  } | tojson }}
+  </script>
+
+  <!-- 2) поднимаем CONFIG в JS -->
+  <script>
+    window.CONFIG = JSON.parse(
+      document.getElementById('app-config').textContent
+    );
+  </script>
+
+  <!-- 3) скрипты -->
+  <script src="/static/js/video-stream.js"></script>
+  <script src="/static/js/recorder.js"></script>
+  <script>
+    const log = (m) => (document.getElementById('log').textContent += m + "\n");
+
+    // кнопки
+    const btnStart = document.getElementById('btnStart');
+    const btnStop  = document.getElementById('btnStop');
+    const btnNext  = document.getElementById('btnNext');
+
+    // превью из камеры
+    (async () => {
+      const video = document.getElementById('preview');
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      video.srcObject = stream;
+      window.__previewStream = stream; // опционально
+    })();
+
+    // запись чанками (используем ChunkedRecorder из recorder.js)
+    let rec;
+    btnStart.onclick = async () => {
+      rec = new ChunkedRecorder({
+        sessionId: window.CONFIG.SESSION_ID,
+        kind: 'video',
+        constraints: { audio: true, video: true },
+        mimeType: 'video/webm;codecs=vp9,opus',
+        timeslice: window.CONFIG.MEDIA_TIMESLICE_MS,
+        maxChunks: window.CONFIG.MEDIA_MAX_CHUNKS,
+        onChunkUploaded: ({ index }) => log(`uploaded chunk ${index}`),
+        onError: (e) => log('error: ' + e)
+      });
+      await rec.start();
+      log('recording started');
+    };
+
+    btnNext.onclick = () => log('NEXT QUESTION (placeholder)');
+
+    btnStop.onclick = async () => {
+      const res = await rec.stop({ finalize: true });
+      log('finalized: ' + JSON.stringify(res));
+    };
+  </script>
+</body>
+</html>

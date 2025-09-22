@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 # backend/app/api/interviews.py
 from __future__ import annotations
 
@@ -136,11 +136,15 @@ def _generate_questions(vacancy: Optional[Vacancy]) -> List[Dict[str, Any]]:
                 normalized.append(data)
             if normalized:
                 return normalized
-    title = getattr(vacancy, "title", None) or "???????"
+    title = getattr(vacancy, "title", None)
+    role_phrase = f"на позицию {title}" if title else "на целевую позицию"
     questions = [
-        f"?????????? ?????? ? ????? ?????, ??????????? ???? {title}.",
-        "????? ?????????? ? ????????? ??????? ?? ???????? ??????????",
-        "????? ???????? ? ??? ?? ??????? ? ?????????????",
+        f"Для начала расскажите, пожалуйста, кратко о себе и текущих задачах, чтобы мы лучше понимали ваш контекст {role_phrase}.",
+        "Опишите последний значимый проект: какова была ваша роль, состав команды и основной технологический стек?",
+        "Какие языки программирования, фреймворки, базы данных и облачные сервисы вы применяете чаще всего и по каким критериям их выбираете?",
+        "Как вы организуете взаимодействие с командой и как обычно решаете рабочие разногласия?",
+        "Что для вас сейчас наиболее важно при выборе нового работодателя, формата работы и условий сотрудничества?",
+        "Какие вопросы у вас есть к нам и каких ожиданий по предложению вы придерживаетесь?",
     ]
     return [
         {
@@ -170,12 +174,23 @@ def _conduct_turn(
                     response=response,
                     is_complete=bool(result.get("is_complete")),
                 )
-    follow_up_base = "??????? ?? ?????. "
-    lowered = message.lower()
-    if "???" in lowered or "project" in lowered:
-        follow_up = follow_up_base + "?????????? ????????? ? ????????? ???????, ??????? ?? ?????????."
+    follow_up_base = "Спасибо за ответ. "
+    normalized_length = len(message.strip())
+    if normalized_length < 60:
+        prompts = [
+            "Могли бы вы уточнить конкретный вклад и результаты, чтобы нам было легче оценить ваш опыт?",
+            "Поделитесь, пожалуйста, примером задачи и инструментов, с которыми вы работали в этой ситуации.",
+            "Расскажите, какие решения приняли именно вы и что помогло вам добиться результата?",
+            "Буду признателен, если опишете детали: цели проекта, масштабы и взаимодействие с командой.",
+        ]
     else:
-        follow_up = follow_up_base + "?????? ???????? ??????, ?????????????? ??? ?????"
+        prompts = [
+            "Перейдём к следующему вопросу и обсудим ваш технический стек подробнее.",
+            "Давайте теперь поговорим о командном взаимодействии и вашем вкладе в процессы.",
+            "Предлагаю перейти к вопросам о мотивации и ожиданиях от новой роли.",
+        ]
+    prompt = prompts[len(history) % len(prompts)]
+    follow_up = follow_up_base + prompt
     is_complete = len(history) >= 8
     return InterviewTurnResult(response=follow_up, is_complete=is_complete)
 
@@ -212,16 +227,29 @@ def _evaluate_interview(
         technical_score=base_score * 0.8,
         communication_score=base_score * 0.85,
         motivation_score=base_score * 0.9,
-        strengths=["????????? ?????????????? ? ????????????"],
-        weaknesses=["????? ?????? ?????????? ? ????????"],
-        recommendation="???????? ????? ???????? ? ???????? ???????????? ???????????.",
-        hr_comment="????????????? ??????: ??? ?????? ??????????? ???????, ??? ???? ?????.",
+        strengths=[
+            "чёткая структура ответов",
+            "релевантный опыт с современными веб-сервисами",
+            "глубокое понимание командного взаимодействия",
+            "инициативность в предложении решений",
+        ],
+        weaknesses=[
+            "недостаточно примеров нагрузочного тестирования",
+            "неуверенность в миграциях на базе Alembic",
+            "ограниченное покрытие инструментов мониторинга",
+        ],
+        recommendation="Рекомендую пригласить на следующий этап технического интервью.",
+        hr_comment=(
+            "Кандидат уверенно описывает ключевые проекты и роли. "
+            "Технические ответы структурированы, но часть стека требует уточнения. "
+            "Мотивация и ожидания по условиям прозрачны и совпадают с возможностями команды."
+        ),
     )
 
 
 @router.post("/", response_model=InterviewResponse)
 def create_interview(interview: InterviewCreate, db: Session = Depends(get_db)):
-    """??????? ????? ?????? ???????? ? ?????????????? ????????? ???????."""
+    """Создаёт интервью, сохраняет базовый набор вопросов и возвращает карточку интервью."""
     candidate = db.query(Candidate).filter(Candidate.id == interview.candidate_id).first()
     if candidate is None:
         raise HTTPException(status_code=404, detail="Candidate not found")
@@ -257,14 +285,14 @@ def create_interview(interview: InterviewCreate, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=List[InterviewResponse])
 def get_interviews(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """?????????? ?????? ????????."""
+    """Возвращает список интервью с пагинацией по параметрам skip и limit."""
     interviews = db.query(Interview).offset(skip).limit(limit).all()
     return interviews
 
 
 @router.post("/chat", response_model=InterviewChatResponse)
 def interview_chat(request: InterviewChatRequest, db: Session = Depends(get_db)):
-    """???????????? ??? ??????? ????? ?????????? ? ????????????."""
+    """Записывает сообщение кандидата, генерирует ответ интервьюера и обновляет статус интервью."""
     interview = db.query(Interview).filter(Interview.id == request.interview_id).first()
     if interview is None:
         raise HTTPException(status_code=404, detail="Interview not found")
@@ -339,7 +367,7 @@ def interview_chat(request: InterviewChatRequest, db: Session = Depends(get_db))
 
 @router.get("/{interview_id}/report")
 def get_interview_report(interview_id: int, db: Session = Depends(get_db)):
-    """?????????? ?????????????? ????? ?? ????????."""
+    """Возвращает итоговый отчёт по интервью с оценками и аналитикой."""
     interview = db.query(Interview).filter(Interview.id == interview_id).first()
     if interview is None:
         raise HTTPException(status_code=404, detail="Interview not found")
@@ -373,6 +401,7 @@ async def upload_chunk(
     index: int = Form(...),
     chunk: UploadFile = File(...),
 ):
+    """Принимает и сохраняет отдельный медиа-фрагмент интервью."""
     safe_session = _sanitize_component(session_id, "session_id")
     safe_kind = _sanitize_component(kind, "kind")
 
@@ -399,10 +428,11 @@ async def upload_chunk(
 
 @router.post("/upload/finalize")
 def finalize_upload(payload: FinalizeRequest = Body(...)):
+    """Объединяет загруженные фрагменты, формирует итоговые файлы и загружает их в хранилище."""
     safe_session = _sanitize_component(payload.session_id, "session_id")
 
     root = _media_root()
-    session_dir = (root / safe_session)
+    session_dir = root / safe_session
     if not session_dir.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
 
@@ -472,6 +502,7 @@ def finalize_upload(payload: FinalizeRequest = Body(...)):
 
 @router.get("/admin/check/ffmpeg")
 def admin_check_ffmpeg():
+    """Проверяет доступность установленного бинарника FFmpeg."""
     ffmpeg_bin = settings.FFMPEG_BIN or "ffmpeg"
     if ensure_ffmpeg(ffmpeg_bin):
         return {"ok": True, "bin": ffmpeg_bin}
@@ -479,3 +510,6 @@ def admin_check_ffmpeg():
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         detail={"ok": False, "bin": ffmpeg_bin},
     )
+
+
+# CHANGELOG: восстановлены русскоязычные формулировки вопросов, реплик и оценок, добавлены описания эндпоинтов.

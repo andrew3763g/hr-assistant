@@ -15,13 +15,17 @@ from backend.app.config import settings
 from backend.app.services.gdrive_service import get_storage
 
 
-router = APIRouter()
+router = APIRouter(tags=["Admin"])  # <--- без prefix!
 
+def check_admin_token(x_admin_token: str = Header(...)):
+    from backend.app.config import settings
+    if x_admin_token != settings.ADMIN_TOKEN:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
-def _admin_token_guard(token: Annotated[str | None, Header(alias="X-Admin-Token")]) -> None:
-    expected = (settings.ADMIN_TOKEN or "").strip()
-    if not expected or token != expected:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin token")
+# def _admin_token_guard(token: Annotated[str | None, Header(alias="X-Admin-Token")]) -> None:
+#     expected = (settings.ADMIN_TOKEN or "").strip()
+#     if not expected or token != expected:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin token")
 
 
 def _conn_uri_for_cli() -> str:
@@ -49,8 +53,8 @@ def _gunzip_file(source: Path, target: Path) -> None:
         shutil.copyfileobj(zipped, raw)
 
 
-@router.post("/admin/db/backup")
-def backup_database(_: Annotated[None, Depends(_admin_token_guard)]) -> Dict[str, str]:
+@router.post("/backup", dependencies=[Depends(check_admin_token)])
+async def backup_db() -> Dict[str, str]:
     conn_uri = _conn_uri_for_cli()
     timestamp = _timestamp()
     sql_path = _tmp_path(f"hrdb_{timestamp}.sql")
@@ -93,11 +97,8 @@ def backup_database(_: Annotated[None, Depends(_admin_token_guard)]) -> Dict[str
     return {"file_id": file_id, "link": link}
 
 
-@router.post("/admin/db/restore")
-def restore_database(
-    payload: Dict[str, str],
-    _: Annotated[None, Depends(_admin_token_guard)],
-) -> Dict[str, bool]:
+@router.post("/restore", dependencies=[Depends(check_admin_token)])
+async def restore_db(payload: Dict[str, str],) -> Dict[str, bool]:
     file_id = payload.get("file_id")
     if not file_id:
         raise HTTPException(status_code=400, detail="file_id is required")

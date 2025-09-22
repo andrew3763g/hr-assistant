@@ -4,14 +4,16 @@ from sqlalchemy.orm import Session
 from backend.app.database import get_db
 from backend.app.services.ingest_service import ingest_all
 
-router = APIRouter(prefix="/import", tags=["Import"])
+router = APIRouter(tags=["Imports"])        # <--- без prefix!
+
 
 @router.post("/resumes")
-def import_resumes(db: Session = Depends(get_db)):
+async def import_resumes(db: Session = Depends(get_db)):
     count = ingest_all(db, kind="resumes")
     return {"imported": count}
 
+
 @router.post("/vacancies")
-def import_vacancies(db: Session = Depends(get_db)):
+async def import_vacancies(db: Session = Depends(get_db)):
     count = ingest_all(db, kind="vacancies")
     return {"imported": count}

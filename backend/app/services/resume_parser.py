@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import io
 import re
@@ -161,7 +161,8 @@ class ResumeParser:
                 parts.append(str(paragraph.text))
         for table in document.tables:
             for row in table.rows:
-                row_text = " ".join(str(cell.text) for cell in row.cells if cell.text)
+                row_text = " ".join(str(cell.text)
+                                    for cell in row.cells if cell.text)
                 if row_text:
                     parts.append(row_text)
         return "\n".join(parts)
@@ -196,7 +197,8 @@ class ResumeParser:
         return sorted(set(found))
 
     def _extract_experience_years(self, text: str) -> float:
-        matches = re.findall(r"(\d+)[\s\-]*(?:год|years?)", text, flags=re.IGNORECASE)
+        matches = re.findall(
+            r"(\d+)[\s\-]*(?:год|years?)", text, flags=re.IGNORECASE)
         if not matches:
             return 0.0
         values = [float(match) for match in matches]
@@ -235,7 +237,8 @@ class ResumeParser:
         section = self._find_section(text, "summary")
         if section:
             return section[:500]
-        lines = [line.strip() for line in text.splitlines()[:20] if line.strip()]
+        lines = [line.strip()
+                 for line in text.splitlines()[:20] if line.strip()]
         summary: List[str] = []
         for line in lines:
             if "@" in line:
@@ -255,7 +258,8 @@ class ResumeParser:
                         rf"{keyword}.*?{_LANGUAGE_LEVELS_PATTERN}", text_lower
                     )
                     if level_match:
-                        languages.append(f"{language} ({level_match.group(1)})")
+                        languages.append(
+                            f"{language} ({level_match.group(1)})")
                     else:
                         languages.append(language)
                     break
