@@ -12,7 +12,7 @@
     }
   ],
   "files.encoding": "utf8",
-  "files.autoGuessEncoding": true,
+  "files.autoGuessEncoding": false,
   "editor.fontFamily": "JetBrains Mono, Cascadia Code, Consolas, 'Courier New', monospace",
   "editor.fontLigatures": true,
   "git.autofetch": true,

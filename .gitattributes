@@ -1,7 +1,16 @@
-* text=auto
+* text=auto eol=lf
 *.py   text eol=lf
 *.json text eol=lf
 *.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.bat eol=crlf
+*.ps1 eol=crlf
+*.sh eol=lf
+*.js eol=lf
+*.ts eol=lf
+*.html eol=lf
+*.css eol=lf   
 
 # двоичные
 *.docx binary
@@ -9,3 +18,27 @@
 *.pdf  binary
 *.zip  binary
 *.enc  binary
+
+# Текстовые форматы, которые часто встречаются
+*.toml  text eol=lf
+*.ini   text eol=lf
+*.env   text eol=lf
+*.sql   text eol=lf
+*.csv   text eol=lf
+
+# Локи и карты зависимостей
+yarn.lock  text eol=lf -diff
+pnpm-lock.yaml text eol=lf -diff
+
+# Медиа/изображения в проекте (не диффим)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.svg  text  eol=lf   # svg — это xml (если хочется видеть диффы, оставь text)
+*.wav  binary
+*.mp3  binary
+*.webm binary
+*.mp4  binary
+*.mov  binary
+*.ico  binary   

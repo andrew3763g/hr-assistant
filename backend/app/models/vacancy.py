@@ -184,44 +184,44 @@ class Vacancy(Base):
 
 
     def get_salary_range(self) -> str:
-        """????????? ???????????????? ???????? ????????."""
+        """Формирует строку с указанием диапазона компенсации."""
         salary_min = cast(Optional[int], getattr(self, "salary_min", None))
         salary_max = cast(Optional[int], getattr(self, "salary_max", None))
         currency = cast(Optional[str], getattr(self, "salary_currency", None)) or ""
         if not salary_min and not salary_max:
-            return "???????? ?? ??????"
+            return "Вилка не указана"
         if salary_min and salary_max:
             return f"{salary_min:,} - {salary_max:,} {currency}".strip()
         if salary_min:
-            return f"?? {salary_min:,} {currency}".strip()
-        return f"?? {salary_max:,} {currency}".strip()
+            return f"от {salary_min:,} {currency}".strip()
+        return f"до {salary_max:,} {currency}".strip()
 
     def get_experience_range(self) -> str:
-        """?????????? ?????? ? ?????????? ?????????? ?????."""
+        """Возвращает строку с требуемым опытом работы."""
         min_years = cast(Optional[float], getattr(self, "experience_years_min", None))
         max_years = cast(Optional[float], getattr(self, "experience_years_max", None))
         if not min_years and not max_years:
-            return "??? ??????????"
+            return "Опыт не указан"
         if min_years and max_years:
-            return f"{min_years}-{max_years} ???"
+            return f"{min_years}-{max_years} лет"
         if min_years:
-            return f"?? {min_years} ???"
-        return f"?? {max_years} ???"
+            return f"от {min_years} лет"
+        return f"до {max_years} лет"
 
     def get_all_requirements(self) -> List[str]:
-        """?????????? ???????????? ? ??????????? ??????????."""
+        """Объединяет обязательные и желательные требования."""
         mandatory = cast(Sequence[str] | None, getattr(self, "requirements_mandatory", None)) or []
         optional = cast(Sequence[str] | None, getattr(self, "requirements_optional", None)) or []
         return list(mandatory) + list(optional)
 
     def get_all_skills(self) -> List[str]:
-        """??????????? hard ? soft ??????."""
+        """Комбинирует профессиональные (hard) и коммуникативные (soft) навыки."""
         hard = cast(Sequence[str] | None, getattr(self, "hard_skills", None)) or []
         soft = cast(Sequence[str] | None, getattr(self, "soft_skills", None)) or []
         return list(hard) + list(soft)
 
     def to_dict(self) -> Dict[str, Any]:
-        """?????????? ??????????????? ????????????? ????????."""
+        """Формирует словарь ключевых данных по вакансии."""
         employment_type = cast(Optional[EmploymentType], getattr(self, "employment_type", None))
         work_format = cast(Optional[WorkFormat], getattr(self, "work_format", None))
         status = cast(Optional[VacancyStatus], getattr(self, "status", None))

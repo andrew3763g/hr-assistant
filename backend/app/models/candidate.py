@@ -191,7 +191,7 @@ class Candidate(Base):
     # === Candidate helpers ===
 
     def get_full_name(self) -> str:
-        """?????????? ?????? ???, ????????? ????????????? ?????."""
+        """Возвращает полное имя, объединяя доступные компоненты."""
         last_name = cast(Optional[str], getattr(self, "last_name", None))
         first_name = cast(Optional[str], getattr(self, "first_name", None))
         middle_name = cast(Optional[str], getattr(self, "middle_name", None))
@@ -199,7 +199,7 @@ class Candidate(Base):
         return " ".join(parts) if parts else ""
 
     def get_short_name(self) -> str:
-        """?????????? ??????????? ??? (??????? ?.?.)."""
+        """Возвращает сокращённое имя в формате «Фамилия И.О.»."""
         last_name = cast(Optional[str], getattr(self, "last_name", None)) or ""
         first_name = cast(Optional[str], getattr(self, "first_name", None)) or ""
         middle_name = cast(Optional[str], getattr(self, "middle_name", None))
@@ -212,7 +212,7 @@ class Candidate(Base):
         return short or self.get_full_name() or last_name or first_name
 
     def get_age_from_birth_date(self) -> Optional[int]:
-        """??????????? ??????? ?? ???? ????????, ???? ??? ??????."""
+        """Вычисляет возраст по дате рождения, если она указана."""
         birth_date = cast(Optional[datetime], getattr(self, "birth_date", None))
         if birth_date is None:
             return None
@@ -225,18 +225,18 @@ class Candidate(Base):
         return age
 
     def is_adult(self) -> bool:
-        """?????????, ?????? ?? ???????? ???????????????."""
+        """Определяет, достиг ли кандидат совершеннолетия."""
         age_attr = cast(Optional[int], getattr(self, "age", None))
         age = age_attr or self.get_age_from_birth_date()
         return bool(age and age >= 18)
 
     def has_required_experience(self, years: float) -> bool:
-        """?????????, ?????????? ?? ??? ????? ? ?????????."""
+        """Проверяет, соответствует ли общий стаж заданному порогу."""
         total = cast(Optional[float], getattr(self, "total_experience_years", None))
         return bool(total and total >= years)
 
     def to_dict(self) -> Dict[str, Any]:
-        """?????????? ??????????????? ????????????? ?????????."""
+        """Формирует словарь ключевых сведений о кандидате."""
         gender = cast(Optional[Gender], getattr(self, "gender", None))
         status = cast(Optional[CandidateStatus], getattr(self, "status", None))
         education_level = cast(Optional[EducationLevel], getattr(self, "education_level", None))
